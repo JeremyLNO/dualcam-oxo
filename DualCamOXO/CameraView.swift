@@ -223,33 +223,28 @@ struct CameraView: View {
     // MARK: - Bottom controls
 
     private var controls: some View {
-        HStack {
-            modeSwitch
-            Spacer()
-            recordButton
-            Spacer()
-            if settings.mode == .orientation { sideSwitch }
-            else { Color.clear.frame(width: 54, height: 54) }
+        VStack(spacing: 16) {
+            // Both modes always visible; the active one is honey (Crazy Bee Labs).
+            modeSelector
+                .disabled(engine.isRecording)
+                .opacity(engine.isRecording ? 0.45 : 1)
+
+            ZStack {
+                recordButton
+                HStack {
+                    Spacer()
+                    if settings.mode == .orientation { sideSwitch }
+                }
+                .padding(.horizontal, 6)
+            }
         }
-        .padding(.horizontal, 6)
     }
 
-    private var modeSwitch: some View {
-        Button {
-            withAnimation(.snappy) {
-                settings.mode = settings.mode == .frontBack ? .orientation : .frontBack
-            }
-        } label: {
-            VStack(spacing: 3) {
-                Image(systemName: settings.mode.icon).font(.system(size: 18, weight: .semibold))
-                Text(L.t(settings.mode == .orientation ? "mode_orientation" : "mode_frontback", lang))
-                    .font(.system(size: 8, weight: .semibold)).lineLimit(1)
-            }
-            .foregroundStyle(Palette.ink)
-            .frame(width: 62, height: 62)
-            .background(Circle().fill(Color.black.opacity(0.4)))
-        }
-        .disabled(engine.isRecording)
+    private var modeSelector: some View {
+        SegmentedPills(options: [
+            (value: CaptureMode.orientation, label: L.t("mode_orientation", lang)),
+            (value: CaptureMode.frontBack,   label: L.t("mode_frontback", lang)),
+        ], selection: $settings.mode)
     }
 
     private var sideSwitch: some View {

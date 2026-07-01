@@ -10,7 +10,8 @@
   - **Avant + Arrière** (`.frontBack`) — caméra frontale et arrière simultanément.
 - **Layout PiP** : le flux principal remplit l'écran, le secondaire flotte dans un cadre
   (déplaçable). Défaut = mode **Portrait+Paysage** (portrait plein écran + cadre paysage 16:9).
-  En Avant+Arrière : arrière plein écran + cadre portrait 9:16 « Avant ». Bouton mode en bas.
+  En Avant+Arrière : arrière plein écran + cadre portrait 9:16 « Avant ». **Sélecteur de mode**
+  en bas (`SegmentedPills`) : les 2 modes toujours visibles, l'actif en **miel** (charte CBL).
 - À l'écran : sélecteur de **qualité** (720p/1080p/4K), **flash** (torche). Réglages : **grille**.
 - Enregistrement dans Photos : **1 vidéo combinée** (flux empilés) ou **2 vidéos séparées**.
 - Dossier local : `~/dualcam-oxo/`. Mono-target, bundle `company.lno.dualcamoxo`, **iOS 17+**,
