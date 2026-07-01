@@ -1,0 +1,362 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BA0000000000000000000001 /* DualCamOXOApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000001 /* DualCamOXOApp.swift */; };
+		BA0000000000000000000002 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000002 /* Localization.swift */; };
+		BA0000000000000000000003 /* Palette.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000003 /* Palette.swift */; };
+		BA0000000000000000000004 /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000004 /* Components.swift */; };
+		BA0000000000000000000005 /* CameraModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000005 /* CameraModels.swift */; };
+		BA0000000000000000000006 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000006 /* AppSettings.swift */; };
+		BA0000000000000000000007 /* CameraEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000007 /* CameraEngine.swift */; };
+		BA0000000000000000000008 /* FeedWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000008 /* FeedWriter.swift */; };
+		BA0000000000000000000009 /* VideoComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000009 /* VideoComposer.swift */; };
+		BA000000000000000000000A /* CameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000000A /* CameraPreview.swift */; };
+		BA000000000000000000000B /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000000B /* CameraView.swift */; };
+		BA000000000000000000000C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000000C /* SettingsView.swift */; };
+		BA000000000000000000000D /* ReviewPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000000D /* ReviewPromptView.swift */; };
+		BA000000000000000000000E /* ReviewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000000E /* ReviewManager.swift */; };
+		BA000000000000000000000F /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000000F /* NotificationService.swift */; };
+		BA0000000000000000000010 /* OneSignalBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000010 /* OneSignalBridge.swift */; };
+		BA0000000000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000011 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AC0000000000000000000001 /* DualCamOXOApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCamOXOApp.swift; sourceTree = "<group>"; };
+		AC0000000000000000000002 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
+		AC0000000000000000000003 /* Palette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Palette.swift; sourceTree = "<group>"; };
+		AC0000000000000000000004 /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		AC0000000000000000000005 /* CameraModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModels.swift; sourceTree = "<group>"; };
+		AC0000000000000000000006 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		AC0000000000000000000007 /* CameraEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraEngine.swift; sourceTree = "<group>"; };
+		AC0000000000000000000008 /* FeedWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedWriter.swift; sourceTree = "<group>"; };
+		AC0000000000000000000009 /* VideoComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoComposer.swift; sourceTree = "<group>"; };
+		AC000000000000000000000A /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
+		AC000000000000000000000B /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
+		AC000000000000000000000C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		AC000000000000000000000D /* ReviewPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptView.swift; sourceTree = "<group>"; };
+		AC000000000000000000000E /* ReviewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewManager.swift; sourceTree = "<group>"; };
+		AC000000000000000000000F /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		AC0000000000000000000010 /* OneSignalBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneSignalBridge.swift; sourceTree = "<group>"; };
+		AC0000000000000000000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AC0000000000000000000012 /* DualCamOXO.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DualCamOXO.entitlements; sourceTree = "<group>"; };
+		CC0000000000000000000001 /* DualCamOXO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DualCamOXO.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FF0000000000000000000004 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA0000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				AC0000000000000000000100 /* DualCamOXO */,
+				AA0000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CC0000000000000000000001 /* DualCamOXO.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AC0000000000000000000100 /* DualCamOXO */ = {
+			isa = PBXGroup;
+			children = (
+				AC0000000000000000000001 /* DualCamOXOApp.swift */,
+				AC0000000000000000000002 /* Localization.swift */,
+				AC0000000000000000000003 /* Palette.swift */,
+				AC0000000000000000000004 /* Components.swift */,
+				AC0000000000000000000005 /* CameraModels.swift */,
+				AC0000000000000000000006 /* AppSettings.swift */,
+				AC0000000000000000000007 /* CameraEngine.swift */,
+				AC0000000000000000000008 /* FeedWriter.swift */,
+				AC0000000000000000000009 /* VideoComposer.swift */,
+				AC000000000000000000000A /* CameraPreview.swift */,
+				AC000000000000000000000B /* CameraView.swift */,
+				AC000000000000000000000C /* SettingsView.swift */,
+				AC000000000000000000000D /* ReviewPromptView.swift */,
+				AC000000000000000000000E /* ReviewManager.swift */,
+				AC000000000000000000000F /* NotificationService.swift */,
+				AC0000000000000000000010 /* OneSignalBridge.swift */,
+				AC0000000000000000000011 /* Assets.xcassets */,
+				AC0000000000000000000012 /* DualCamOXO.entitlements */,
+			);
+			path = DualCamOXO;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BB0000000000000000000001 /* DualCamOXO */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DD0000000000000000000002 /* Build configuration list for PBXNativeTarget "DualCamOXO" */;
+			buildPhases = (
+				FF0000000000000000000001 /* Sources */,
+				FF0000000000000000000004 /* Frameworks */,
+				FF0000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DualCamOXO;
+			productName = DualCamOXO;
+			productReference = CC0000000000000000000001 /* DualCamOXO.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA0000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2650;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					BB0000000000000000000001 = {
+						CreatedOnToolsVersion = 26.5;
+					};
+				};
+			};
+			buildConfigurationList = DD0000000000000000000001 /* Build configuration list for PBXProject "DualCamOXO" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA0000000000000000000002;
+			productRefGroup = AA0000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BB0000000000000000000001 /* DualCamOXO */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FF0000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA0000000000000000000011 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FF0000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA0000000000000000000001 /* DualCamOXOApp.swift in Sources */,
+				BA0000000000000000000002 /* Localization.swift in Sources */,
+				BA0000000000000000000003 /* Palette.swift in Sources */,
+				BA0000000000000000000004 /* Components.swift in Sources */,
+				BA0000000000000000000005 /* CameraModels.swift in Sources */,
+				BA0000000000000000000006 /* AppSettings.swift in Sources */,
+				BA0000000000000000000007 /* CameraEngine.swift in Sources */,
+				BA0000000000000000000008 /* FeedWriter.swift in Sources */,
+				BA0000000000000000000009 /* VideoComposer.swift in Sources */,
+				BA000000000000000000000A /* CameraPreview.swift in Sources */,
+				BA000000000000000000000B /* CameraView.swift in Sources */,
+				BA000000000000000000000C /* SettingsView.swift in Sources */,
+				BA000000000000000000000D /* ReviewPromptView.swift in Sources */,
+				BA000000000000000000000E /* ReviewManager.swift in Sources */,
+				BA000000000000000000000F /* NotificationService.swift in Sources */,
+				BA0000000000000000000010 /* OneSignalBridge.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		EE0000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		EE0000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		EE0000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DualCamOXO/DualCamOXO.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2E6D4Q69QB;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "DualCam OxO";
+				INFOPLIST_KEY_NSCameraUsageDescription = "DualCam OxO uses the cameras to record with two lenses at once.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "DualCam OxO records audio with your videos.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "DualCam OxO saves your recordings to Photos.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = company.lno.dualcamoxo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		EE0000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = DualCamOXO/DualCamOXO.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2E6D4Q69QB;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "DualCam OxO";
+				INFOPLIST_KEY_NSCameraUsageDescription = "DualCam OxO uses the cameras to record with two lenses at once.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "DualCam OxO records audio with your videos.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "DualCam OxO saves your recordings to Photos.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = company.lno.dualcamoxo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		DD0000000000000000000001 /* Build configuration list for PBXProject "DualCamOXO" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EE0000000000000000000001 /* Debug */,
+				EE0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DD0000000000000000000002 /* Build configuration list for PBXNativeTarget "DualCamOXO" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EE0000000000000000000003 /* Debug */,
+				EE0000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA0000000000000000000001 /* Project object */;
+}
