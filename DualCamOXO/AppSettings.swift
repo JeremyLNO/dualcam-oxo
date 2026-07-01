@@ -57,6 +57,6 @@ final class AppSettings: ObservableObject {
 /// Small helper kept separate so `AppSettings.init` stays declarative.
 private enum CameraModelsDecode {
     static func mode(_ raw: String?) -> CaptureMode {
-        CaptureMode(rawValue: raw ?? "") ?? .frontBack
+        CaptureMode(rawValue: raw ?? "") ?? .orientation
     }
 }

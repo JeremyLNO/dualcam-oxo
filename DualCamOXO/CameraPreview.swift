@@ -6,6 +6,8 @@ import AVFoundation
 struct FeedPreview: UIViewRepresentable {
     let session: AVCaptureMultiCamSession
     let port: AVCaptureInput.Port?
+    /// Preview rotation in degrees: 90 = portrait, 0 = landscape.
+    var rotationAngle: CGFloat = 90
 
     func makeUIView(context: Context) -> PreviewView {
         let v = PreviewView()
@@ -26,6 +28,9 @@ struct FeedPreview: UIViewRepresentable {
                 v.currentConnection = conn
                 v.attachedPort = port
             }
+        }
+        if let conn = v.currentConnection, conn.isVideoRotationAngleSupported(rotationAngle) {
+            conn.videoRotationAngle = rotationAngle
         }
     }
 

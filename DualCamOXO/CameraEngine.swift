@@ -115,8 +115,10 @@ final class CameraEngine: NSObject, ObservableObject {
         }
         torchDevice = [devA, devB].first { $0.hasTorch }
 
-        guard addFeed(device: devA, output: outputA, assign: { self.portA = $0 }),
-              addFeed(device: devB, output: outputB, assign: { self.portB = $0 }) else {
+        // Feed B is framed landscape in Portrait+Landscape mode, portrait otherwise.
+        let rotB: CGFloat = (mode == .orientation) ? 0 : 90
+        guard addFeed(device: devA, output: outputA, rotation: 90, assign: { self.portA = $0 }),
+              addFeed(device: devB, output: outputB, rotation: rotB, assign: { self.portB = $0 }) else {
             Task { @MainActor in self.status = .unsupported }; return
         }
         addAudio()
@@ -136,6 +138,7 @@ final class CameraEngine: NSObject, ObservableObject {
     /// keeping the raw port so the preview layer can attach to the same source.
     private func addFeed(device: AVCaptureDevice,
                          output: AVCaptureVideoDataOutput,
+                         rotation: CGFloat,
                          assign: (AVCaptureInput.Port) -> Void) -> Bool {
         guard let input = try? AVCaptureDeviceInput(device: device),
               session.canAddInput(input) else { return false }
@@ -153,7 +156,7 @@ final class CameraEngine: NSObject, ObservableObject {
         let conn = AVCaptureConnection(inputPorts: [port], output: output)
         guard session.canAddConnection(conn) else { return false }
         session.addConnection(conn)
-        if conn.isVideoRotationAngleSupported(90) { conn.videoRotationAngle = 90 }
+        if conn.isVideoRotationAngleSupported(rotation) { conn.videoRotationAngle = rotation }
         return true
     }
 

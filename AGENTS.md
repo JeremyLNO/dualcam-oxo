@@ -8,6 +8,9 @@
   - **Portrait + Paysage** (`.orientation`) — deux objectifs du *même* côté (arrière ou avant) :
     grand-angle + ultra grand-angle (repli téléobjectif), un cadré 16:9, l'autre 9:16.
   - **Avant + Arrière** (`.frontBack`) — caméra frontale et arrière simultanément.
+- **Layout PiP** : le flux principal remplit l'écran, le secondaire flotte dans un cadre
+  (déplaçable). Défaut = mode **Portrait+Paysage** (portrait plein écran + cadre paysage 16:9).
+  En Avant+Arrière : arrière plein écran + cadre portrait 9:16 « Avant ». Bouton mode en bas.
 - À l'écran : sélecteur de **qualité** (720p/1080p/4K), **flash** (torche). Réglages : **grille**.
 - Enregistrement dans Photos : **1 vidéo combinée** (flux empilés) ou **2 vidéos séparées**.
 - Dossier local : `~/dualcam-oxo/`. Mono-target, bundle `company.lno.dualcamoxo`, **iOS 17+**,
@@ -15,8 +18,8 @@
 
 ## Compiler & lancer
 - `./build-run.sh` — build simulateur, boot, install, lancement.
-- `./build-run.sh -demoLang fr` — force la langue. `-forceReview` — affiche le prompt d'avis.
-  `-openSettings` — ouvre les réglages.
+- `./build-run.sh -demoLang fr` — force la langue. `-demoMode <orientation|frontBack>` — force le mode.
+  `-forceReview` — affiche le prompt d'avis. `-openSettings` — ouvre les réglages.
 - Ou Xcode : ouvrir `DualCamOXO.xcodeproj`, scheme **DualCamOXO**, ⌘R.
 - ⚠️ **Le multi-cam ne marche QUE sur un iPhone réel.** Dans le simulateur (aucune caméra),
   l'app tourne avec des aperçus « placeholder » → l'UI, les réglages, les langues et le prompt
@@ -40,7 +43,8 @@
 - **VideoComposer.swift** — combine deux clips (empilés, canvas portrait, `AVMutableVideoComposition`)
   et sauvegarde dans Photos (`PHPhotoLibrary`) selon `SaveMode`.
 - **CameraPreview.swift** — `AVCaptureVideoPreviewLayer` par port (multi-cam) + placeholder + grille.
-- **CameraView.swift** — écran principal (2 aperçus empilés, contrôles, bouton record).
+- **CameraView.swift** — écran principal : flux principal plein écran + PiP flottant déplaçable,
+  contrôles, bouton record. `FeedPreview` prend un `rotationAngle` (90 portrait / 0 paysage).
 - **SettingsView.swift** — grille, save mode, qualité, langue, notifications, inscription, support,
   signature CBL (logo + lien).
 - **ReviewManager.swift** / **ReviewPromptView.swift** — prompt **24 h après install** :

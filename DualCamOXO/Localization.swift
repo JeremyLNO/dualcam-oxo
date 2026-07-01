@@ -70,6 +70,8 @@ enum L {
         "side_back": [.en: "Back", .fr: "Arrière", .es: "Trasera", .de: "Rück", .pt: "Traseira"],
         "side_front": [.en: "Front", .fr: "Avant", .es: "Frontal", .de: "Front", .pt: "Frontal"],
         "swap": [.en: "Swap", .fr: "Inverser", .es: "Intercambiar", .de: "Tauschen", .pt: "Trocar"],
+        "label_portrait": [.en: "Portrait", .fr: "Portrait", .es: "Vertical", .de: "Hoch", .pt: "Retrato"],
+        "label_landscape": [.en: "Landscape", .fr: "Paysage", .es: "Horizontal", .de: "Quer", .pt: "Paisagem"],
 
         // Quality
         "quality": [.en: "Quality", .fr: "Qualité", .es: "Calidad", .de: "Qualität", .pt: "Qualidade"],

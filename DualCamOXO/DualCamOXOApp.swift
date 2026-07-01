@@ -11,6 +11,11 @@ struct DualCamOXOApp: App {
         if let i = args.firstIndex(of: "-demoLang"), i + 1 < args.count {
             UserDefaults.standard.set(args[i + 1], forKey: AppLanguage.storageKey)
         }
+        // -demoMode <orientation|frontBack> forces the capture mode (screenshots).
+        if let i = args.firstIndex(of: "-demoMode"), i + 1 < args.count,
+           CaptureMode(rawValue: args[i + 1]) != nil {
+            UserDefaults.standard.set(args[i + 1], forKey: "capture.mode")
+        }
         ReviewManager.shared.bootstrap()   // stamp the install date on first run
     }
 
