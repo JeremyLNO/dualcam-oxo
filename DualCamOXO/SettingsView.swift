@@ -35,6 +35,14 @@ struct SettingsView: View {
                     .pickerStyle(.inline).labelsHidden()
                     Text(L.t(settings.saveMode.descKey, lang))
                         .font(.footnote).foregroundStyle(Palette.sub)
+
+                    if settings.saveMode == .combined {
+                        Picker(L.t("combined_layout", lang), selection: $settings.combinedLayout) {
+                            ForEach(CombinedLayout.allCases) { l in
+                                Label(L.t(l.titleKey, lang), systemImage: l.icon).tag(l)
+                            }
+                        }
+                    }
                 }
 
                 // Language

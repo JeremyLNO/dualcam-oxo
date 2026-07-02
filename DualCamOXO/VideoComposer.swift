@@ -2,65 +2,80 @@ import AVFoundation
 import Photos
 import UIKit
 
-/// Turns a finished `CameraEngine.Take` into what the user asked for in Settings:
-/// either two separate clips saved to Photos, or one combined (stacked) clip.
+/// Turns a finished capture into what the user asked for in Settings:
+/// two separate items, or one combined item (stacked or picture-in-picture).
 enum VideoComposer {
 
     enum ComposerError: Error { case export, noTracks }
 
-    /// Save both feeds to Photos according to `mode`.
-    static func save(take a: URL, and b: URL, as mode: SaveMode) async throws {
+    // MARK: - Video
+
+    /// Save both video feeds to Photos according to `mode` / `layout`.
+    static func save(take a: URL, and b: URL, as mode: SaveMode, layout: CombinedLayout) async throws {
         try await ensurePhotoPermission()
         switch mode {
         case .separate:
-            try await addToPhotos(a)
-            try await addToPhotos(b)
+            try await addToPhotos(a); try await addToPhotos(b)
         case .combined:
-            let merged = try await combine(top: a, bottom: b)
+            let merged = try await combine(main: a, secondary: b, layout: layout)
             try await addToPhotos(merged)
         }
     }
 
-    // MARK: - Combine (stacked, portrait canvas)
+    /// Compose the two clips into one, either stacked or with the secondary inset (PiP).
+    static func combine(main: URL, secondary: URL, layout: CombinedLayout) async throws -> URL {
+        let mainAsset = AVURLAsset(url: main)
+        let secAsset  = AVURLAsset(url: secondary)
 
-    static func combine(top: URL, bottom: URL) async throws -> URL {
-        let topAsset = AVURLAsset(url: top)
-        let botAsset = AVURLAsset(url: bottom)
-
-        guard let topV = try await topAsset.loadTracks(withMediaType: .video).first,
-              let botV = try await botAsset.loadTracks(withMediaType: .video).first
+        guard let mainV = try await mainAsset.loadTracks(withMediaType: .video).first,
+              let secV  = try await secAsset.loadTracks(withMediaType: .video).first
         else { throw ComposerError.noTracks }
 
         let comp = AVMutableComposition()
-        guard let ct = comp.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
-              let cb = comp.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
+        guard let cm = comp.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
+              let cs = comp.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
         else { throw ComposerError.export }
 
-        let dur = try await topAsset.load(.duration)
+        let dur = try await mainAsset.load(.duration)
         let range = CMTimeRange(start: .zero, duration: dur)
-        try ct.insertTimeRange(range, of: topV, at: .zero)
-        try? cb.insertTimeRange(CMTimeRange(start: .zero, duration: dur), of: botV, at: .zero)
+        try cm.insertTimeRange(range, of: mainV, at: .zero)
+        try? cs.insertTimeRange(CMTimeRange(start: .zero, duration: dur), of: secV, at: .zero)
 
-        // Add the first available audio track.
-        if let aTrack = try await topAsset.loadTracks(withMediaType: .audio).first,
+        if let aTrack = try await mainAsset.loadTracks(withMediaType: .audio).first,
            let ca = comp.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
             try? ca.insertTimeRange(range, of: aTrack, at: .zero)
         }
 
-        // Each feed is portrait; stack them into a taller portrait canvas.
-        let topSize = try await naturalOriented(topV)
-        let cellW = topSize.width
-        let cellH = topSize.height
-        let canvas = CGSize(width: cellW, height: cellH * 2)
+        let mainSize = try await naturalOriented(mainV)
+        let secSize  = try await naturalOriented(secV)
 
-        let li1 = AVMutableVideoCompositionLayerInstruction(assetTrack: ct)
-        li1.setTransform(try await transform(for: topV, in: CGRect(x: 0, y: 0, width: cellW, height: cellH)), at: .zero)
-        let li2 = AVMutableVideoCompositionLayerInstruction(assetTrack: cb)
-        li2.setTransform(try await transform(for: botV, in: CGRect(x: 0, y: cellH, width: cellW, height: cellH)), at: .zero)
+        let canvas: CGSize
+        let mainRect: CGRect
+        let secRect: CGRect
+        switch layout {
+        case .stacked:
+            let w = mainSize.width, h = mainSize.height
+            canvas   = CGSize(width: w, height: h * 2)
+            mainRect = CGRect(x: 0, y: 0, width: w, height: h)
+            secRect  = CGRect(x: 0, y: h, width: w, height: h)
+        case .pip:
+            canvas = mainSize
+            mainRect = CGRect(origin: .zero, size: mainSize)
+            let insetW = mainSize.width * 0.32
+            let insetH = insetW * (secSize.height / max(secSize.width, 1))
+            let margin = mainSize.width * 0.04
+            secRect = CGRect(x: canvas.width - insetW - margin, y: margin, width: insetW, height: insetH)
+        }
+
+        let liMain = AVMutableVideoCompositionLayerInstruction(assetTrack: cm)
+        liMain.setTransform(try await transform(for: mainV, in: mainRect), at: .zero)
+        let liSec = AVMutableVideoCompositionLayerInstruction(assetTrack: cs)
+        liSec.setTransform(try await transform(for: secV, in: secRect), at: .zero)
 
         let instruction = AVMutableVideoCompositionInstruction()
         instruction.timeRange = range
-        instruction.layerInstructions = [li1, li2]
+        // First layer instruction renders in front, so the inset goes first for PiP.
+        instruction.layerInstructions = (layout == .pip) ? [liSec, liMain] : [liMain, liSec]
 
         let vComp = AVMutableVideoComposition()
         vComp.renderSize = canvas
@@ -81,7 +96,6 @@ enum VideoComposer {
         return out
     }
 
-    /// Natural size accounting for the track's preferred transform.
     private static func naturalOriented(_ track: AVAssetTrack) async throws -> CGSize {
         let size = try await track.load(.naturalSize)
         let t = try await track.load(.preferredTransform)
@@ -102,6 +116,58 @@ enum VideoComposer {
                    .concatenating(CGAffineTransform(translationX: tx, y: ty))
     }
 
+    // MARK: - Photo
+
+    /// Save both still images to Photos according to `mode` / `layout`.
+    static func savePhotos(_ a: UIImage, _ b: UIImage, mode: SaveMode, layout: CombinedLayout) async throws {
+        try await ensurePhotoPermission()
+        switch mode {
+        case .separate:
+            try await addImageToPhotos(a); try await addImageToPhotos(b)
+        case .combined:
+            try await addImageToPhotos(composePhoto(main: a, secondary: b, layout: layout))
+        }
+    }
+
+    private static func composePhoto(main: UIImage, secondary: UIImage, layout: CombinedLayout) -> UIImage {
+        let canvas: CGSize = (layout == .stacked)
+            ? CGSize(width: main.size.width, height: main.size.height * 2)
+            : main.size
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: canvas, format: format).image { ctx in
+            switch layout {
+            case .stacked:
+                let h = main.size.height
+                drawAspectFill(main, in: CGRect(x: 0, y: 0, width: canvas.width, height: h), ctx)
+                drawAspectFill(secondary, in: CGRect(x: 0, y: h, width: canvas.width, height: h), ctx)
+            case .pip:
+                drawAspectFill(main, in: CGRect(origin: .zero, size: canvas), ctx)
+                let insetW = canvas.width * 0.32
+                let insetH = insetW * (secondary.size.height / max(secondary.size.width, 1))
+                let margin = canvas.width * 0.04
+                let rect = CGRect(x: canvas.width - insetW - margin, y: margin, width: insetW, height: insetH)
+                let path = UIBezierPath(roundedRect: rect, cornerRadius: insetW * 0.08)
+                ctx.cgContext.saveGState()
+                path.addClip()
+                drawAspectFill(secondary, in: rect, ctx)
+                ctx.cgContext.restoreGState()
+                UIColor(white: 1, alpha: 0.9).setStroke()
+                path.lineWidth = max(2, insetW * 0.02)
+                path.stroke()
+            }
+        }
+    }
+
+    private static func drawAspectFill(_ image: UIImage, in rect: CGRect, _ ctx: UIGraphicsImageRendererContext) {
+        ctx.cgContext.saveGState()
+        ctx.cgContext.clip(to: rect)
+        let scale = max(rect.width / image.size.width, rect.height / image.size.height)
+        let w = image.size.width * scale, h = image.size.height * scale
+        image.draw(in: CGRect(x: rect.midX - w / 2, y: rect.midY - h / 2, width: w, height: h))
+        ctx.cgContext.restoreGState()
+    }
+
     // MARK: - Photos
 
     private static func ensurePhotoPermission() async throws {
@@ -118,6 +184,13 @@ enum VideoComposer {
     private static func addToPhotos(_ url: URL) async throws {
         try await PHPhotoLibrary.shared().performChanges {
             PHAssetCreationRequest.forAsset().addResource(with: .video, fileURL: url, options: nil)
+        }
+    }
+
+    private static func addImageToPhotos(_ image: UIImage) async throws {
+        guard let data = image.jpegData(compressionQuality: 0.95) else { throw ComposerError.export }
+        try await PHPhotoLibrary.shared().performChanges {
+            PHAssetCreationRequest.forAsset().addResource(with: .photo, data: data, options: nil)
         }
     }
 }

@@ -2,8 +2,8 @@ import SwiftUI
 import AVFoundation
 
 /// The capture screen: the primary feed fills the screen, the secondary feed floats
-/// in a draggable picture-in-picture frame. A bottom button switches between
-/// Portrait+Landscape and Front+Back.
+/// in a draggable picture-in-picture frame (tap it to swap). Pinch to zoom, tap to
+/// focus. A Photo/Video toggle and an always-visible mode selector sit at the bottom.
 struct CameraView: View {
     @EnvironmentObject var settings: AppSettings
     @StateObject private var engine = CameraEngine()
@@ -14,27 +14,30 @@ struct CameraView: View {
     @State private var toastIcon = "checkmark.circle.fill"
     @State private var saving = false
 
-    // PiP position (draggable).
+    // Feed swap + PiP position.
+    @State private var swapped = false
     @State private var pipOffset: CGSize = .zero
     @State private var pipStart: CGSize = .zero
 
+    // Zoom + focus.
+    @State private var zoom: CGFloat = 1
+    @State private var zoomBase: CGFloat = 1
+    @State private var focusPoint: CGPoint?
+
     private var lang: AppLanguage { AppLanguage.current }
+    private var mainIsA: Bool { !swapped }
 
     var body: some View {
         ZStack {
             Palette.bg0.ignoresSafeArea()
 
-            // Fullscreen primary feed + grid.
-            mainFeed
-                .ignoresSafeArea()
+            mainFeed.ignoresSafeArea()
             if settings.showGrid, engine.status == .running || engine.status == .simulator {
                 GridOverlay().ignoresSafeArea()
             }
 
-            // Floating picture-in-picture secondary feed.
             pipFrame
 
-            // Controls.
             VStack(spacing: 0) {
                 topBar
                 Spacer()
@@ -44,11 +47,8 @@ struct CameraView: View {
             .padding(.bottom, 8)
 
             if let toast {
-                VStack {
-                    Spacer()
-                    Toast(text: toast, systemImage: toastIcon).padding(.bottom, 180)
-                }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                VStack { Spacer(); Toast(text: toast, systemImage: toastIcon).padding(.bottom, 220) }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .preferredColorScheme(.dark)
@@ -58,48 +58,68 @@ struct CameraView: View {
             if CommandLine.arguments.contains("-openSettings") { showSettings = true }
         }
         .onDisappear { engine.stop() }
-        .onChange(of: settings.mode) { _, _ in resetPip(); restart() }
-        .onChange(of: settings.side) { _, _ in restart() }
+        .onChange(of: settings.mode) { _, _ in resetTransforms(); restart() }
+        .onChange(of: settings.side) { _, _ in resetTransforms(); restart() }
         .onChange(of: settings.quality) { _, _ in restart() }
-        .sheet(isPresented: $showSettings) {
-            SettingsView().environmentObject(settings)
-        }
-        .sheet(isPresented: $review.isPresented) {
-            ReviewPromptView(lang: lang)
-        }
+        .onChange(of: settings.captureKind) { _, _ in resetTransforms(); restart() }
+        .sheet(isPresented: $showSettings) { SettingsView().environmentObject(settings) }
+        .sheet(isPresented: $review.isPresented) { ReviewPromptView(lang: lang) }
     }
 
     // MARK: - Feeds
 
-    /// Primary feed fills the screen. Portrait in both modes.
+    /// Primary feed fills the screen (portrait). Pinch to zoom, tap to focus.
     private var mainFeed: some View {
         ZStack {
-            feedContent(port: engine.portA, rotation: 90, compact: false)
+            feedContent(port: mainIsA ? engine.portA : engine.portB,
+                        rotation: rotation(isA: mainIsA),
+                        compact: false,
+                        onFocus: { view, device in handleFocus(view: view, device: device) })
             VStack {
-                HStack {
-                    feedBadge(mainLabel)
-                    Spacer()
-                }
+                HStack { feedBadge(label(isA: mainIsA)); Spacer() }
                 Spacer()
             }
-            .padding(.top, 108)
-            .padding(.leading, 16)
+            .padding(.top, 108).padding(.leading, 16)
+
+            if let p = focusPoint { focusReticle.position(p) }
         }
+        .contentShape(Rectangle())
+        .gesture(
+            MagnifyGesture()
+                .onChanged { v in
+                    let z = max(1, min(zoomBase * v.magnification, 8))
+                    zoom = z
+                    engine.setZoom(z, onA: mainIsA)
+                }
+                .onEnded { _ in zoomBase = zoom }
+        )
     }
 
-    /// Secondary feed floats in a rounded frame whose shape depends on the mode:
-    /// landscape (16:9) in Portrait+Landscape, portrait (9:16) in Front+Back.
+    /// Secondary feed floats in a rounded frame; tap to swap it with the main feed.
     private var pipFrame: some View {
         GeometryReader { geo in
-            let landscape = settings.mode == .orientation
+            // Landscape frame only when the PiP currently holds the landscape feed.
+            let landscape = settings.mode == .orientation && !swapped
             let w: CGFloat = landscape ? geo.size.width * 0.44 : geo.size.width * 0.30
             let h: CGFloat = landscape ? w * 9 / 16 : w * 16 / 9
 
             ZStack(alignment: .topLeading) {
-                feedContent(port: engine.portB,
-                            rotation: landscape ? 0 : 90,
-                            compact: true)
-                feedBadge(pipLabel).padding(6)
+                feedContent(port: mainIsA ? engine.portB : engine.portA,
+                            rotation: rotation(isA: !mainIsA),
+                            compact: true, onFocus: nil)
+                feedBadge(label(isA: !mainIsA)).padding(6)
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Image(systemName: "arrow.left.arrow.right")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(6)
+                            .background(Circle().fill(Color.black.opacity(0.45)))
+                            .padding(6)
+                    }
+                }
             }
             .frame(width: w, height: h)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
@@ -109,6 +129,7 @@ struct CameraView: View {
             .offset(x: pipOffset.width, y: pipOffset.height)
             .position(x: geo.size.width - w / 2 - 16,
                       y: geo.safeAreaInsets.top + h / 2 + 70)
+            .onTapGesture { withAnimation(.snappy) { swapped.toggle(); resetZoom() } }
             .gesture(
                 DragGesture()
                     .onChanged { v in
@@ -122,19 +143,16 @@ struct CameraView: View {
     }
 
     @ViewBuilder
-    private func feedContent(port: AVCaptureInput.Port?, rotation: CGFloat, compact: Bool) -> some View {
+    private func feedContent(port: AVCaptureInput.Port?, rotation: CGFloat, compact: Bool,
+                             onFocus: ((CGPoint, CGPoint) -> Void)?) -> some View {
         switch engine.status {
         case .running:
-            FeedPreview(session: engine.session, port: port, rotationAngle: rotation)
+            FeedPreview(session: engine.session, port: port, rotationAngle: rotation, onFocus: onFocus)
         case .simulator:
             PreviewPlaceholder(systemImage: compact ? "camera.rotate" : "camera.viewfinder",
                                text: compact ? "" : L.t("simulator_note", lang))
         case .denied:
-            if compact {
-                PreviewPlaceholder(systemImage: "lock.fill", text: "")
-            } else {
-                deniedCell
-            }
+            if compact { PreviewPlaceholder(systemImage: "lock.fill", text: "") } else { deniedCell }
         case .unsupported:
             PreviewPlaceholder(systemImage: "exclamationmark.triangle",
                                text: compact ? "" : L.t("multicam_unsupported", lang))
@@ -143,19 +161,29 @@ struct CameraView: View {
         }
     }
 
-    private var mainLabel: String {
-        settings.mode == .frontBack ? L.t("side_back", lang) : L.t("label_portrait", lang)
+    /// 90° = portrait; feed B is landscape (0°) only in Portrait+Landscape mode.
+    private func rotation(isA: Bool) -> CGFloat {
+        isA ? 90 : (settings.mode == .orientation ? 0 : 90)
     }
-    private var pipLabel: String {
-        settings.mode == .frontBack ? L.t("side_front", lang) : L.t("label_landscape", lang)
+    private func label(isA: Bool) -> String {
+        switch settings.mode {
+        case .frontBack:   return isA ? L.t("side_back", lang) : L.t("side_front", lang)
+        case .orientation: return isA ? L.t("label_portrait", lang) : L.t("label_landscape", lang)
+        }
     }
 
     private func feedBadge(_ text: String) -> some View {
         Text(text)
-            .font(.caption2.weight(.bold))
-            .foregroundStyle(.white)
+            .font(.caption2.weight(.bold)).foregroundStyle(.white)
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(Capsule().fill(Color.black.opacity(0.45)))
+    }
+
+    private var focusReticle: some View {
+        RoundedRectangle(cornerRadius: 8)
+            .stroke(Palette.honey, lineWidth: 1.5)
+            .frame(width: 74, height: 74)
+            .transition(.scale.combined(with: .opacity))
     }
 
     private var deniedCell: some View {
@@ -204,9 +232,7 @@ struct CameraView: View {
     private var qualityMenu: some View {
         Menu {
             Picker("", selection: $settings.quality) {
-                ForEach(VideoQuality.allCases) { q in
-                    Text(L.t(q.titleKey, lang)).tag(q)
-                }
+                ForEach(VideoQuality.allCases) { q in Text(L.t(q.titleKey, lang)).tag(q) }
             }
         } label: {
             HStack(spacing: 6) {
@@ -217,25 +243,26 @@ struct CameraView: View {
             .padding(.horizontal, 14).frame(height: 42)
             .background(Capsule().fill(Color.black.opacity(0.4)))
         }
-        .disabled(engine.isRecording)
+        .disabled(engine.isRecording || settings.captureKind == .photo)
+        .opacity(settings.captureKind == .photo ? 0.4 : 1)
     }
 
     // MARK: - Bottom controls
 
     private var controls: some View {
-        VStack(spacing: 16) {
-            // Both modes always visible; the active one is honey (Crazy Bee Labs).
+        VStack(spacing: 12) {
             modeSelector
                 .disabled(engine.isRecording)
                 .opacity(engine.isRecording ? 0.45 : 1)
 
+            kindToggle
+                .disabled(engine.isRecording)
+                .opacity(engine.isRecording ? 0.45 : 1)
+
             ZStack {
-                recordButton
-                HStack {
-                    Spacer()
-                    if settings.mode == .orientation { sideSwitch }
-                }
-                .padding(.horizontal, 6)
+                shutterButton
+                HStack { Spacer(); if settings.mode == .orientation { sideSwitch } }
+                    .padding(.horizontal, 6)
             }
         }
     }
@@ -245,6 +272,13 @@ struct CameraView: View {
             (value: CaptureMode.orientation, label: L.t("mode_orientation", lang)),
             (value: CaptureMode.frontBack,   label: L.t("mode_frontback", lang)),
         ], selection: $settings.mode)
+    }
+
+    private var kindToggle: some View {
+        SegmentedPills(options: [
+            (value: CaptureKind.video, label: L.t("video", lang)),
+            (value: CaptureKind.photo, label: L.t("photo", lang)),
+        ], selection: $settings.captureKind)
     }
 
     private var sideSwitch: some View {
@@ -260,17 +294,21 @@ struct CameraView: View {
         .disabled(engine.isRecording)
     }
 
-    private var recordButton: some View {
+    private var shutterButton: some View {
         VStack(spacing: 6) {
-            Button { toggleRecord() } label: {
+            Button { onShutter() } label: {
                 ZStack {
                     Circle().strokeBorder(Color.white.opacity(0.9), lineWidth: 4)
                         .frame(width: 74, height: 74)
-                    RoundedRectangle(cornerRadius: engine.isRecording ? 6 : 30, style: .continuous)
-                        .fill(Palette.record)
-                        .frame(width: engine.isRecording ? 30 : 60,
-                               height: engine.isRecording ? 30 : 60)
-                        .animation(.snappy(duration: 0.2), value: engine.isRecording)
+                    if settings.captureKind == .video {
+                        RoundedRectangle(cornerRadius: engine.isRecording ? 6 : 30, style: .continuous)
+                            .fill(Palette.record)
+                            .frame(width: engine.isRecording ? 30 : 60,
+                                   height: engine.isRecording ? 30 : 60)
+                            .animation(.snappy(duration: 0.2), value: engine.isRecording)
+                    } else {
+                        Circle().fill(.white).frame(width: 60, height: 60)
+                    }
                 }
             }
             .disabled(saving || (engine.status != .running && engine.status != .simulator))
@@ -288,8 +326,8 @@ struct CameraView: View {
     // MARK: - Actions
 
     private func startEngine() {
-        engine.start(mode: settings.mode, side: settings.side,
-                     quality: settings.quality, flash: settings.flashDefault)
+        engine.start(mode: settings.mode, side: settings.side, quality: settings.quality,
+                     flash: settings.flashDefault, kind: settings.captureKind)
         Task {
             try? await Task.sleep(nanoseconds: 700_000_000)
             review.evaluate(force: CommandLine.arguments.contains("-forceReview"))
@@ -299,13 +337,28 @@ struct CameraView: View {
     private func restart() {
         guard !engine.isRecording else { return }
         engine.stop()
-        engine.start(mode: settings.mode, side: settings.side,
-                     quality: settings.quality, flash: settings.flashDefault)
+        engine.start(mode: settings.mode, side: settings.side, quality: settings.quality,
+                     flash: settings.flashDefault, kind: settings.captureKind)
     }
 
+    private func resetTransforms() { resetPip(); resetZoom() }
     private func resetPip() { withAnimation { pipOffset = .zero; pipStart = .zero } }
+    private func resetZoom() { zoom = 1; zoomBase = 1 }
 
     private func flashToggle() { engine.torchOn.toggle() }
+
+    private func handleFocus(view: CGPoint, device: CGPoint) {
+        engine.focus(at: device, onA: mainIsA)
+        withAnimation(.snappy) { focusPoint = view }
+        Task {
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            withAnimation { focusPoint = nil }
+        }
+    }
+
+    private func onShutter() {
+        settings.captureKind == .video ? toggleRecord() : takePhoto()
+    }
 
     private func toggleRecord() {
         let wasRecording = engine.isRecording
@@ -319,12 +372,33 @@ struct CameraView: View {
         Task {
             do {
                 try? await Task.sleep(nanoseconds: 400_000_000)
-                try await VideoComposer.save(take: take.urlA, and: take.urlB, as: settings.saveMode)
+                try await VideoComposer.save(take: take.urlA, and: take.urlB,
+                                             as: settings.saveMode, layout: settings.combinedLayout)
                 flash(L.t("saved", lang))
             } catch {
                 flash(L.t("save_failed", lang), icon: "exclamationmark.triangle.fill")
             }
             saving = false
+        }
+    }
+
+    private func takePhoto() {
+        saving = true
+        engine.capturePhoto(flash: engine.torchOn) { a, b in
+            Task {
+                guard let a, let b else {
+                    flash(L.t("save_failed", lang), icon: "exclamationmark.triangle.fill")
+                    saving = false; return
+                }
+                do {
+                    try await VideoComposer.savePhotos(a, b, mode: settings.saveMode,
+                                                       layout: settings.combinedLayout)
+                    flash(L.t("saved_photo", lang))
+                } catch {
+                    flash(L.t("save_failed", lang), icon: "exclamationmark.triangle.fill")
+                }
+                saving = false
+            }
         }
     }
 

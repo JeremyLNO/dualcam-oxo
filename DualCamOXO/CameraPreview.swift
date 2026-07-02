@@ -8,16 +8,27 @@ struct FeedPreview: UIViewRepresentable {
     let port: AVCaptureInput.Port?
     /// Preview rotation in degrees: 90 = portrait, 0 = landscape.
     var rotationAngle: CGFloat = 90
+    /// When set, a tap reports (viewPoint, devicePoint 0…1) for focus/exposure.
+    var onFocus: ((CGPoint, CGPoint) -> Void)? = nil
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeUIView(context: Context) -> PreviewView {
         let v = PreviewView()
         v.backgroundColor = .black
         v.previewLayer.setSessionWithNoConnection(session)
         v.previewLayer.videoGravity = .resizeAspectFill
+        let tap = UITapGestureRecognizer(target: context.coordinator,
+                                         action: #selector(Coordinator.handleTap(_:)))
+        v.addGestureRecognizer(tap)
+        v.focusTap = tap
+        context.coordinator.view = v
         return v
     }
 
     func updateUIView(_ v: PreviewView, context: Context) {
+        context.coordinator.onFocus = onFocus
+        v.focusTap?.isEnabled = (onFocus != nil)
         guard let port else { return }
         // (Re)establish the connection to this feed's port once it exists.
         if v.attachedPort !== port {
@@ -34,11 +45,23 @@ struct FeedPreview: UIViewRepresentable {
         }
     }
 
+    final class Coordinator {
+        weak var view: PreviewView?
+        var onFocus: ((CGPoint, CGPoint) -> Void)?
+        @objc func handleTap(_ g: UITapGestureRecognizer) {
+            guard let view else { return }
+            let loc = g.location(in: view)
+            let devicePoint = view.previewLayer.captureDevicePointConverted(fromLayerPoint: loc)
+            onFocus?(loc, devicePoint)
+        }
+    }
+
     final class PreviewView: UIView {
         override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
         var previewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
         var currentConnection: AVCaptureConnection?
         var attachedPort: AVCaptureInput.Port?
+        var focusTap: UITapGestureRecognizer?
     }
 }
 

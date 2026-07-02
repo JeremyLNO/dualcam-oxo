@@ -20,6 +20,8 @@ final class AppSettings: ObservableObject {
         static let grid          = "ui.grid"
         static let flashDefault  = "capture.flashDefault"
         static let notifications = "notif.enabled"
+        static let captureKind   = "capture.kind"
+        static let combinedLayout = "save.combinedLayout"
     }
     /// Bump when the persisted shape changes; add a migration branch below.
     static let currentSchema = 1
@@ -31,6 +33,8 @@ final class AppSettings: ObservableObject {
     @Published var showGrid: Bool           { didSet { d.set(showGrid, forKey: Key.grid) } }
     @Published var flashDefault: Bool       { didSet { d.set(flashDefault, forKey: Key.flashDefault) } }
     @Published var notificationsEnabled: Bool { didSet { d.set(notificationsEnabled, forKey: Key.notifications) } }
+    @Published var captureKind: CaptureKind   { didSet { d.set(captureKind.rawValue, forKey: Key.captureKind) } }
+    @Published var combinedLayout: CombinedLayout { didSet { d.set(combinedLayout.rawValue, forKey: Key.combinedLayout) } }
 
     private init() {
         // Read with fallbacks so a fresh or partially-written store is always valid.
@@ -41,6 +45,8 @@ final class AppSettings: ObservableObject {
         showGrid     = d.object(forKey: Key.grid) as? Bool ?? false
         flashDefault = d.object(forKey: Key.flashDefault) as? Bool ?? false
         notificationsEnabled = d.object(forKey: Key.notifications) as? Bool ?? true
+        captureKind    = CaptureKind(rawValue: d.string(forKey: Key.captureKind) ?? "") ?? .video
+        combinedLayout = CombinedLayout(rawValue: d.string(forKey: Key.combinedLayout) ?? "") ?? .pip
         migrateIfNeeded()
     }
 

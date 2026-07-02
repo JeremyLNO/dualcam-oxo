@@ -12,8 +12,12 @@
   (déplaçable). Défaut = mode **Portrait+Paysage** (portrait plein écran + cadre paysage 16:9).
   En Avant+Arrière : arrière plein écran + cadre portrait 9:16 « Avant ». **Sélecteur de mode**
   en bas (`SegmentedPills`) : les 2 modes toujours visibles, l'actif en **miel** (charte CBL).
+- **Tap sur le cadre PiP = permute** principal/secondaire (`swapped`). **Pinch = zoom**, **tap = mise
+  au point/expo** (réticule miel) sur le flux principal.
+- **Photo / Vidéo** : bascule en bas (`CaptureKind`). Photo = double `AVCapturePhotoOutput` multi-cam.
 - À l'écran : sélecteur de **qualité** (720p/1080p/4K), **flash** (torche). Réglages : **grille**.
-- Enregistrement dans Photos : **1 vidéo combinée** (flux empilés) ou **2 vidéos séparées**.
+- Enregistrement dans Photos : **1 média combiné** (empilé **ou incrusté PiP**, `CombinedLayout`)
+  ou **2 médias séparés** — pour vidéos ET photos.
 - Dossier local : `~/dualcam-oxo/`. Mono-target, bundle `company.lno.dualcamoxo`, **iOS 17+**,
   Swift 5 mode, team `2E6D4Q69QB`, iPhone uniquement, portrait.
 
@@ -35,14 +39,18 @@
 - **Localization.swift** — table in-code `L.t(key, lang)` EN/FR/ES/DE/PT. Défaut = langue système,
   repli anglais ; le choix utilisateur (persisté sous `app.language`) est **prioritaire**.
 - **Components.swift** — `AppInfo` (URLs support/site/compte, `appStoreID`), UI réutilisable.
-- **CameraModels.swift** — enums `CaptureMode`, `CameraSide`, `VideoQuality`, `SaveMode`.
+- **CameraModels.swift** — enums `CaptureMode`, `CameraSide`, `VideoQuality`, `SaveMode`,
+  `CaptureKind` (photo/vidéo), `CombinedLayout` (empilé/incrusté PiP).
 - **AppSettings.swift** — préférences **versionnées** (`schemaVersion`, migration **non destructive**)
   persistées dans UserDefaults. Singleton `.shared`.
 - **CameraEngine.swift** — moteur multi-cam : inputs sans connexion + ports exposés pour l'aperçu,
-  data outputs + torche, enregistrement via deux `FeedWriter`. Dégrade proprement (simu/denied/unsupported).
+  data outputs (vidéo) **ou** `AVCapturePhotoOutput` (photo) selon `kind`, torche, **zoom/mise au point**
+  par device, enregistrement via deux `FeedWriter`, capture photo via `DualPhotoCapture` (2 stills →
+  1 callback). Dégrade proprement (simu/denied/unsupported).
 - **FeedWriter.swift** — un `AVAssetWriter` par flux (vidéo + audio partagé), thread-safe.
-- **VideoComposer.swift** — combine deux clips (empilés, canvas portrait, `AVMutableVideoComposition`)
-  et sauvegarde dans Photos (`PHPhotoLibrary`) selon `SaveMode`.
+- **VideoComposer.swift** — combine deux clips (empilé ou **incrusté PiP**, `AVMutableVideoComposition`)
+  et compose deux photos (`UIGraphicsImageRenderer`) ; sauvegarde dans Photos (`PHPhotoLibrary`)
+  selon `SaveMode` + `CombinedLayout`.
 - **CameraPreview.swift** — `AVCaptureVideoPreviewLayer` par port (multi-cam) + placeholder + grille.
 - **CameraView.swift** — écran principal : flux principal plein écran + PiP flottant déplaçable,
   contrôles, bouton record. `FeedPreview` prend un `rotationAngle` (90 portrait / 0 paysage).

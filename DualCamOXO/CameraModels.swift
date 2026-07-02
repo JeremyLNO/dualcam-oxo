@@ -67,6 +67,25 @@ enum VideoQuality: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+/// Still photo vs. video capture.
+enum CaptureKind: String, CaseIterable, Identifiable, Codable {
+    case video, photo
+    var id: String { rawValue }
+    var titleKey: String { self == .video ? "video" : "photo" }
+    var icon: String { self == .video ? "video.fill" : "camera.fill" }
+}
+
+/// How a *combined* export arranges the two feeds.
+enum CombinedLayout: String, CaseIterable, Identifiable, Codable {
+    /// Feeds stacked one above the other.
+    case stacked
+    /// Secondary feed inset over the primary (matches the on-screen preview).
+    case pip
+    var id: String { rawValue }
+    var titleKey: String { self == .stacked ? "layout_stacked" : "layout_pip" }
+    var icon: String { self == .stacked ? "rectangle.split.1x2" : "rectangle.inset.bottomright.filled" }
+}
+
 /// How the two feeds land in Photos.
 enum SaveMode: String, CaseIterable, Identifiable, Codable {
     /// Both feeds composited (stacked) into a single video.
