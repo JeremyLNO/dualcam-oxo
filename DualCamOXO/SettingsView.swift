@@ -108,7 +108,7 @@ struct SettingsView: View {
                     Link(destination: AppInfo.siteURL) {
                         VStack(spacing: 8) {
                             Image("CrazyBeeLabsLogo")
-                                .resizable().scaledToFit().frame(height: 56)
+                                .resizable().scaledToFit().frame(height: 30)
                             Text("crazybeelabs.com")
                                 .font(.footnote.weight(.medium))
                                 .foregroundStyle(Palette.honey)
