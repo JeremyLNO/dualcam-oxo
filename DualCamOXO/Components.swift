@@ -9,6 +9,14 @@ enum AppInfo {
     static let siteURL = URL(string: "https://crazybeelabs.com/")!
     /// Account sign-up on the Crazy Bee Labs site.
     static let signUpURL = URL(string: "https://crazybeelabs.com/account/")!
+    /// Privacy policy, required by App Review whenever an app collects any data.
+    static let privacyPolicyURL = URL(string: "https://www.crazybeelabs.com/privacy-policy/")!
+
+    /// Base URL of the Crazy Bee Labs account API (crazybeelabs-app).
+    static let apiBaseURL = URL(string: "https://www.crazybeelabs.com/api")!
+    /// Non-consumable "Pro" unlock (4K + watermark-free export) — create this
+    /// product in App Store Connect with this exact identifier before shipping.
+    static let proProductID = "company.lno.dualcamoxo.pro"
 
     /// App Store numeric ID — fill in once the app is live on the App Store.
     /// Until then the review "Yes" button falls back to the CBL site.

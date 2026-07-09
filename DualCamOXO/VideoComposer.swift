@@ -11,19 +11,23 @@ enum VideoComposer {
     // MARK: - Video
 
     /// Save both video feeds to Photos according to `mode` / `layout`.
-    static func save(take a: URL, and b: URL, as mode: SaveMode, layout: CombinedLayout) async throws {
+    /// `watermarked` marks the free-tier "DualCam OxO" stamp on the combined
+    /// output only — the two raw separate clips are never watermarked.
+    static func save(take a: URL, and b: URL, as mode: SaveMode, layout: CombinedLayout,
+                     watermarked: Bool) async throws {
         try await ensurePhotoPermission()
         switch mode {
         case .separate:
             try await addToPhotos(a); try await addToPhotos(b)
         case .combined:
-            let merged = try await combine(main: a, secondary: b, layout: layout)
+            let merged = try await combine(main: a, secondary: b, layout: layout, watermarked: watermarked)
             try await addToPhotos(merged)
         }
     }
 
     /// Compose the two clips into one, either stacked or with the secondary inset (PiP).
-    static func combine(main: URL, secondary: URL, layout: CombinedLayout) async throws -> URL {
+    static func combine(main: URL, secondary: URL, layout: CombinedLayout,
+                        watermarked: Bool = false) async throws -> URL {
         let mainAsset = AVURLAsset(url: main)
         let secAsset  = AVURLAsset(url: secondary)
 
@@ -81,6 +85,9 @@ enum VideoComposer {
         vComp.renderSize = canvas
         vComp.frameDuration = CMTime(value: 1, timescale: 30)
         vComp.instructions = [instruction]
+        if watermarked {
+            vComp.animationTool = watermarkAnimationTool(canvas: canvas)
+        }
 
         let out = FileManager.default.temporaryDirectory
             .appendingPathComponent("dualcam_combined_\(Int(Date().timeIntervalSince1970)).mov")
@@ -94,6 +101,36 @@ enum VideoComposer {
         await export.export()
         guard export.status == .completed else { throw export.error ?? ComposerError.export }
         return out
+    }
+
+    /// Burns a small "DualCam OxO" stamp into the bottom-right corner via a Core
+    /// Animation overlay — the standard way to composite a CALayer into an export.
+    private static func watermarkAnimationTool(canvas: CGSize) -> AVVideoCompositionCoreAnimationTool {
+        let overlayLayer = CALayer()
+        overlayLayer.frame = CGRect(origin: .zero, size: canvas)
+
+        let videoLayer = CALayer()
+        videoLayer.frame = overlayLayer.frame
+        overlayLayer.addSublayer(videoLayer)
+
+        let fontSize = canvas.width * 0.026
+        let textLayer = CATextLayer()
+        textLayer.string = "DualCam OxO"
+        textLayer.font = UIFont.boldSystemFont(ofSize: fontSize)
+        textLayer.fontSize = fontSize
+        textLayer.alignmentMode = .right
+        textLayer.foregroundColor = UIColor.white.withAlphaComponent(0.85).cgColor
+        textLayer.shadowColor = UIColor.black.cgColor
+        textLayer.shadowOpacity = 0.6
+        textLayer.shadowRadius = 3
+        textLayer.shadowOffset = .zero
+        textLayer.contentsScale = 2
+        let margin = canvas.width * 0.035
+        textLayer.frame = CGRect(x: 0, y: canvas.height - fontSize * 1.6 - margin,
+                                 width: canvas.width - margin, height: fontSize * 1.6)
+        overlayLayer.addSublayer(textLayer)
+
+        return AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: overlayLayer)
     }
 
     private static func naturalOriented(_ track: AVAssetTrack) async throws -> CGSize {
@@ -119,17 +156,20 @@ enum VideoComposer {
     // MARK: - Photo
 
     /// Save both still images to Photos according to `mode` / `layout`.
-    static func savePhotos(_ a: UIImage, _ b: UIImage, mode: SaveMode, layout: CombinedLayout) async throws {
+    static func savePhotos(_ a: UIImage, _ b: UIImage, mode: SaveMode, layout: CombinedLayout,
+                           watermarked: Bool) async throws {
         try await ensurePhotoPermission()
         switch mode {
         case .separate:
             try await addImageToPhotos(a); try await addImageToPhotos(b)
         case .combined:
-            try await addImageToPhotos(composePhoto(main: a, secondary: b, layout: layout))
+            try await addImageToPhotos(
+                composePhoto(main: a, secondary: b, layout: layout, watermarked: watermarked))
         }
     }
 
-    private static func composePhoto(main: UIImage, secondary: UIImage, layout: CombinedLayout) -> UIImage {
+    private static func composePhoto(main: UIImage, secondary: UIImage, layout: CombinedLayout,
+                                     watermarked: Bool) -> UIImage {
         let canvas: CGSize = (layout == .stacked)
             ? CGSize(width: main.size.width, height: main.size.height * 2)
             : main.size
@@ -156,7 +196,28 @@ enum VideoComposer {
                 path.lineWidth = max(2, insetW * 0.02)
                 path.stroke()
             }
+            if watermarked { drawWatermark(in: canvas) }
         }
+    }
+
+    /// Draws the free-tier "DualCam OxO" stamp in the bottom-right corner.
+    private static func drawWatermark(in canvas: CGSize) {
+        let fontSize = canvas.width * 0.026
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: UIFont.boldSystemFont(ofSize: fontSize),
+            .foregroundColor: UIColor.white.withAlphaComponent(0.85),
+            .shadow: {
+                let s = NSShadow()
+                s.shadowColor = UIColor.black.withAlphaComponent(0.6)
+                s.shadowBlurRadius = 3
+                return s
+            }(),
+        ]
+        let text = "DualCam OxO" as NSString
+        let size = text.size(withAttributes: attrs)
+        let margin = canvas.width * 0.035
+        let origin = CGPoint(x: canvas.width - size.width - margin, y: canvas.height - size.height - margin)
+        text.draw(at: origin, withAttributes: attrs)
     }
 
     private static func drawAspectFill(_ image: UIImage, in rect: CGRect, _ ctx: UIGraphicsImageRendererContext) {

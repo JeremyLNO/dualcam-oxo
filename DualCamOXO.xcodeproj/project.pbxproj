@@ -24,6 +24,13 @@
 		BA000000000000000000000F /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000000F /* NotificationService.swift */; };
 		BA0000000000000000000010 /* OneSignalBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000010 /* OneSignalBridge.swift */; };
 		BA0000000000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000011 /* Assets.xcassets */; };
+		BA0000000000000000000013 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000013 /* APIClient.swift */; };
+		BA0000000000000000000014 /* AccountManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000014 /* AccountManager.swift */; };
+		BA0000000000000000000015 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000015 /* AccountView.swift */; };
+		BA0000000000000000000016 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000016 /* Keychain.swift */; };
+		BA0000000000000000000017 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000017 /* NetworkMonitor.swift */; };
+		BA0000000000000000000018 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000018 /* PaywallView.swift */; };
+		BA0000000000000000000019 /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000019 /* PurchaseManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +52,13 @@
 		AC0000000000000000000010 /* OneSignalBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneSignalBridge.swift; sourceTree = "<group>"; };
 		AC0000000000000000000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AC0000000000000000000012 /* DualCamOXO.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DualCamOXO.entitlements; sourceTree = "<group>"; };
+		AC0000000000000000000013 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		AC0000000000000000000014 /* AccountManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountManager.swift; sourceTree = "<group>"; };
+		AC0000000000000000000015 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
+		AC0000000000000000000016 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
+		AC0000000000000000000017 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		AC0000000000000000000018 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		AC0000000000000000000019 /* PurchaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseManager.swift; sourceTree = "<group>"; };
 		CC0000000000000000000001 /* DualCamOXO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DualCamOXO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -96,6 +110,13 @@
 				AC0000000000000000000010 /* OneSignalBridge.swift */,
 				AC0000000000000000000011 /* Assets.xcassets */,
 				AC0000000000000000000012 /* DualCamOXO.entitlements */,
+				AC0000000000000000000013 /* APIClient.swift */,
+				AC0000000000000000000014 /* AccountManager.swift */,
+				AC0000000000000000000015 /* AccountView.swift */,
+				AC0000000000000000000016 /* Keychain.swift */,
+				AC0000000000000000000017 /* NetworkMonitor.swift */,
+				AC0000000000000000000018 /* PaywallView.swift */,
+				AC0000000000000000000019 /* PurchaseManager.swift */,
 			);
 			path = DualCamOXO;
 			sourceTree = "<group>";
@@ -185,6 +206,13 @@
 				BA000000000000000000000E /* ReviewManager.swift in Sources */,
 				BA000000000000000000000F /* NotificationService.swift in Sources */,
 				BA0000000000000000000010 /* OneSignalBridge.swift in Sources */,
+				BA0000000000000000000013 /* APIClient.swift in Sources */,
+				BA0000000000000000000014 /* AccountManager.swift in Sources */,
+				BA0000000000000000000015 /* AccountView.swift in Sources */,
+				BA0000000000000000000016 /* Keychain.swift in Sources */,
+				BA0000000000000000000017 /* NetworkMonitor.swift in Sources */,
+				BA0000000000000000000018 /* PaywallView.swift in Sources */,
+				BA0000000000000000000019 /* PurchaseManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

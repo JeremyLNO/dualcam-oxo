@@ -60,6 +60,28 @@
   Oui → note App Store · Non → page support.
 - **NotificationService.swift** — notifications locales + **OneSignal** (point d'intégration) +
   détection de mise à jour via iTunes lookup. **OneSignalBridge.swift** — guardé `#if canImport`.
+- **Keychain.swift** — wrapper Keychain minimal pour le jeton de session (jamais dans UserDefaults).
+- **NetworkMonitor.swift** — `NWPathMonitor` singleton (`isOnline`) ; toutes les vues réseau affichent
+  un état « hors ligne » propre plutôt qu'un spinner infini ou un crash.
+- **APIClient.swift** — client JSON générique vers l'API `crazybeelabs.com` (`AppInfo.apiBaseURL`),
+  `APIError` (offline/server/unauthorized/decoding) toujours traduit via `L.t`.
+- **AccountManager.swift** — état de session (`.shared`) : Sign in with Apple natif
+  (`completeAppleSignIn`, piloté par `SignInWithAppleButton` côté vue), email/mot de passe,
+  reset password, suppression de compte (appelle `DELETE /api/account`), déconnexion. Jeton en
+  Keychain, cache utilisateur non sensible en UserDefaults.
+- **AccountView.swift** — écran Compte (sheet) : état déconnecté (Apple + email/mdp + mot de passe
+  oublié + lien inscription web) / connecté (e-mail, zone de danger suppression avec confirmation
+  « DELETE »). Bannière hors-ligne via `NetworkMonitor`.
+- **PurchaseManager.swift** — StoreKit 2, produit non-consommable `AppInfo.proProductID`
+  (`company.lno.dualcamoxo.pro`). `isPro` dérivé de `Transaction.currentEntitlements` ; Restore
+  Purchases = `AppStore.sync()`. Aucune dépendance backend (source de vérité = StoreKit).
+- **PaywallView.swift** — sheet « DualCam OxO Pro » (4K illimité + export combiné sans filigrane),
+  bouton d'achat (prix StoreKit live) + Restore Purchases.
+- **Gating Pro** : 4K verrouillé (`CameraView.selectQuality`/`SettingsView.qualityBinding` ouvrent
+  le paywall au lieu d'appliquer 4K sans Pro ; `effectiveQuality` re-garde côté moteur au cas où
+  l'entitlement change). Filigrane « DualCam OxO » sur les exports **combinés** uniquement
+  (`VideoComposer`, `watermarked:` — CALayer/`AVVideoCompositionCoreAnimationTool` pour la vidéo,
+  dessin Core Graphics pour la photo) ; les exports séparés (flux bruts) ne sont jamais filigranés.
 
 ## Conventions
 - `project.pbxproj` **écrit à la main**, schéma d'UUID lisible : `AA…` projet/groupes · `BB…` target ·
@@ -76,6 +98,17 @@
    Les messages + deep links (dont « mise à jour disponible ») s'écrivent dans le dashboard OneSignal ;
    un push peut porter `additionalData["url"]` pour ouvrir une page.
 3. **aps-environment** — `DualCamOXO.entitlements` est en `development` ; passer en `production` pour la prod.
+4. **Sign In with Apple (portail Apple Developer)** — activer la capability « Sign In with Apple »
+   sur l'App ID `company.lno.dualcamoxo` (developer.apple.com → Certificates, Identifiers & Profiles).
+   L'entitlement `com.apple.developer.applesignin` est déjà dans `DualCamOXO.entitlements` ; sans
+   l'activation portail, le bouton natif échoue sur device.
+5. **App Store Connect — produit Pro** — créer l'achat intégré **non-consommable** avec l'identifiant
+   exact `company.lno.dualcamoxo.pro` (`AppInfo.proProductID`). Sans lui, `PurchaseManager` ne trouve
+   aucun produit et le bouton d'achat reste désactivé (Restore Purchases reste fonctionnel).
+6. **Backend crazybeelabs-app** — le compte in-app (Sign in with Apple, reset password, suppression)
+   appelle `AppInfo.apiBaseURL` (crazybeelabs.com/api). Voir `~/crazybeelabs-app/AGENTS.md` (ou le
+   commit correspondant) : nécessite la migration `drizzle/0005_account_apple.sql` appliquée en base
+   avant que ces écrans fonctionnent en prod.
 
 ## Compat & données
 - Toutes les préférences passent par `AppSettings` (UserDefaults, clés stables) avec un `schemaVersion`.
