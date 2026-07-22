@@ -29,8 +29,8 @@
 		BA0000000000000000000015 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000015 /* AccountView.swift */; };
 		BA0000000000000000000016 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000016 /* Keychain.swift */; };
 		BA0000000000000000000017 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000017 /* NetworkMonitor.swift */; };
-		BA0000000000000000000018 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000018 /* PaywallView.swift */; };
-		BA0000000000000000000019 /* PurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000019 /* PurchaseManager.swift */; };
+		BA000000000000000000001A /* AppLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000001A /* AppLicense.swift */; };
+		BA000000000000000000001B /* CrazyBeeLicense in Frameworks */ = {isa = PBXBuildFile; productRef = 5F0000000000000000000001 /* CrazyBeeLicense */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,8 +57,7 @@
 		AC0000000000000000000015 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		AC0000000000000000000016 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		AC0000000000000000000017 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
-		AC0000000000000000000018 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
-		AC0000000000000000000019 /* PurchaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PurchaseManager.swift; sourceTree = "<group>"; };
+		AC000000000000000000001A /* AppLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLicense.swift; sourceTree = "<group>"; };
 		CC0000000000000000000001 /* DualCamOXO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DualCamOXO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -67,6 +66,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BA000000000000000000001B /* CrazyBeeLicense in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,8 +115,7 @@
 				AC0000000000000000000015 /* AccountView.swift */,
 				AC0000000000000000000016 /* Keychain.swift */,
 				AC0000000000000000000017 /* NetworkMonitor.swift */,
-				AC0000000000000000000018 /* PaywallView.swift */,
-				AC0000000000000000000019 /* PurchaseManager.swift */,
+				AC000000000000000000001A /* AppLicense.swift */,
 			);
 			path = DualCamOXO;
 			sourceTree = "<group>";
@@ -137,6 +136,9 @@
 			dependencies = (
 			);
 			name = DualCamOXO;
+			packageProductDependencies = (
+				5F0000000000000000000001 /* CrazyBeeLicense */,
+			);
 			productName = DualCamOXO;
 			productReference = CC0000000000000000000001 /* DualCamOXO.app */;
 			productType = "com.apple.product-type.application";
@@ -165,6 +167,9 @@
 				Base,
 			);
 			mainGroup = AA0000000000000000000002;
+			packageReferences = (
+				410000000000000000000001 /* XCLocalSwiftPackageReference "../crazybee-license-kit" */,
+			);
 			productRefGroup = AA0000000000000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -211,12 +216,26 @@
 				BA0000000000000000000015 /* AccountView.swift in Sources */,
 				BA0000000000000000000016 /* Keychain.swift in Sources */,
 				BA0000000000000000000017 /* NetworkMonitor.swift in Sources */,
-				BA0000000000000000000018 /* PaywallView.swift in Sources */,
-				BA0000000000000000000019 /* PurchaseManager.swift in Sources */,
+				BA000000000000000000001A /* AppLicense.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		410000000000000000000001 /* XCLocalSwiftPackageReference "../crazybee-license-kit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../crazybee-license-kit";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5F0000000000000000000001 /* CrazyBeeLicense */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 410000000000000000000001 /* XCLocalSwiftPackageReference "../crazybee-license-kit" */;
+			productName = CrazyBeeLicense;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		EE0000000000000000000001 /* Debug */ = {

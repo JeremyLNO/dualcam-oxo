@@ -1,4 +1,5 @@
 import SwiftUI
+import CrazyBeeLicense
 
 @main
 struct DualCamOXOApp: App {
@@ -21,13 +22,34 @@ struct DualCamOXOApp: App {
 
     var body: some Scene {
         WindowGroup {
-            CameraView()
+            AppGate()
                 .environmentObject(settings)
                 .task {
                     // Silent update check on launch (fires a local notice if newer exists).
                     await NotificationService.shared.checkForUpdate()
                 }
         }
+    }
+}
+
+/// Gates the whole app behind the license state — trial running or a valid license
+/// shows `CameraView`, otherwise the shared `LicenseLockedView` paywall.
+private struct AppGate: View {
+    @ObservedObject private var license = AppLicense.manager
+
+    var body: some View {
+        Group {
+            if license.isFunctional {
+                CameraView()
+            } else {
+                LicenseLockedView(
+                    manager: license,
+                    features: AppLicense.features,
+                    logo: Image("CrazyBeeLabsLogo")
+                )
+            }
+        }
+        .task { await license.refresh() }
     }
 }
 

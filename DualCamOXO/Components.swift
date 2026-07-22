@@ -14,9 +14,6 @@ enum AppInfo {
 
     /// Base URL of the Crazy Bee Labs account API (crazybeelabs-app).
     static let apiBaseURL = URL(string: "https://www.crazybeelabs.com/api")!
-    /// Non-consumable "Pro" unlock (4K + watermark-free export) — create this
-    /// product in App Store Connect with this exact identifier before shipping.
-    static let proProductID = "company.lno.dualcamoxo.pro"
 
     /// App Store numeric ID — fill in once the app is live on the App Store.
     /// Until then the review "Yes" button falls back to the CBL site.

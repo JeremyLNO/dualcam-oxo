@@ -8,10 +8,8 @@ struct CameraView: View {
     @EnvironmentObject var settings: AppSettings
     @StateObject private var engine = CameraEngine()
     @ObservedObject private var review = ReviewManager.shared
-    @ObservedObject private var purchases = PurchaseManager.shared
 
     @State private var showSettings = false
-    @State private var showPaywall = false
     @State private var toast: String?
     @State private var toastIcon = "checkmark.circle.fill"
     @State private var saving = false
@@ -65,7 +63,6 @@ struct CameraView: View {
         .onChange(of: settings.quality) { _, _ in restart() }
         .onChange(of: settings.captureKind) { _, _ in resetTransforms(); restart() }
         .sheet(isPresented: $showSettings) { SettingsView().environmentObject(settings) }
-        .sheet(isPresented: $showPaywall) { PaywallView(lang: lang) }
         .sheet(isPresented: $review.isPresented) { ReviewPromptView(lang: lang) }
     }
 
@@ -238,11 +235,7 @@ struct CameraView: View {
                 Button {
                     selectQuality(q)
                 } label: {
-                    if q == .uhd4k && !purchases.isPro {
-                        Label(L.t(q.titleKey, lang), systemImage: "lock.fill")
-                    } else {
-                        Text(L.t(q.titleKey, lang))
-                    }
+                    Text(L.t(q.titleKey, lang))
                 }
             }
         } label: {
@@ -258,13 +251,8 @@ struct CameraView: View {
         .opacity(settings.captureKind == .photo ? 0.4 : 1)
     }
 
-    /// Applies the picked quality, or opens the paywall if it's the Pro-gated 4K tier.
     private func selectQuality(_ q: VideoQuality) {
-        if q == .uhd4k && !purchases.isPro {
-            showPaywall = true
-        } else {
-            settings.quality = q
-        }
+        settings.quality = q
     }
 
     // MARK: - Bottom controls
@@ -345,11 +333,7 @@ struct CameraView: View {
 
     // MARK: - Actions
 
-    /// Guards against a stale `.uhd4k` selection outliving a Pro entitlement
-    /// (e.g. Family Sharing revoked) — never records above 1080p without Pro.
-    private var effectiveQuality: VideoQuality {
-        (settings.quality == .uhd4k && !purchases.isPro) ? .hd1080 : settings.quality
-    }
+    private var effectiveQuality: VideoQuality { settings.quality }
 
     private func startEngine() {
         engine.start(mode: settings.mode, side: settings.side, quality: effectiveQuality,
@@ -399,7 +383,7 @@ struct CameraView: View {
             do {
                 try? await Task.sleep(nanoseconds: 400_000_000)
                 try await VideoComposer.save(take: take.urlA, and: take.urlB, as: settings.saveMode,
-                                             layout: settings.combinedLayout, watermarked: !purchases.isPro)
+                                             layout: settings.combinedLayout, watermarked: false)
                 flash(L.t("saved", lang))
             } catch {
                 flash(L.t("save_failed", lang), icon: "exclamationmark.triangle.fill")
@@ -418,7 +402,7 @@ struct CameraView: View {
                 }
                 do {
                     try await VideoComposer.savePhotos(a, b, mode: settings.saveMode, layout: settings.combinedLayout,
-                                                       watermarked: !purchases.isPro)
+                                                       watermarked: false)
                     flash(L.t("saved_photo", lang))
                 } catch {
                     flash(L.t("save_failed", lang), icon: "exclamationmark.triangle.fill")

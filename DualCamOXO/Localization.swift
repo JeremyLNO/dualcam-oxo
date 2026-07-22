@@ -58,6 +58,14 @@ enum L {
     }
 
     static let table: [String: [AppLanguage: String]] = [
+        // License
+        "license_feature_4k_title": [.en: "4K recording", .fr: "Enregistrement 4K", .es: "Grabación en 4K", .de: "4K-Aufnahme", .pt: "Gravação em 4K"],
+        "license_feature_4k_detail": [.en: "Full 4K on both lenses, not just 1080p.", .fr: "4K complet sur les deux objectifs, pas juste 1080p.", .es: "4K completo en ambas lentes, no solo 1080p.", .de: "Volles 4K auf beiden Objektiven, nicht nur 1080p.", .pt: "4K completo em ambas as lentes, não só 1080p."],
+        "license_feature_layouts_title": [.en: "Every layout", .fr: "Toutes les dispositions", .es: "Todos los formatos", .de: "Alle Layouts", .pt: "Todos os layouts"],
+        "license_feature_layouts_detail": [.en: "Portrait+Landscape and Front+Back, combined or separate.", .fr: "Portrait+Paysage et Avant+Arrière, combinés ou séparés.", .es: "Vertical+Horizontal y Frontal+Trasera, combinadas o por separado.", .de: "Hoch+Quer und Vorne+Hinten, kombiniert oder getrennt.", .pt: "Retrato+Paisagem e Frontal+Traseira, combinadas ou separadas."],
+        "license_feature_nowatermark_title": [.en: "No watermark", .fr: "Sans filigrane", .es: "Sin marca de agua", .de: "Kein Wasserzeichen", .pt: "Sem marca de água"],
+        "license_feature_nowatermark_detail": [.en: "Clean exports, ready to share.", .fr: "Exports propres, prêts à partager.", .es: "Exportaciones limpias, listas para compartir.", .de: "Saubere Exporte, bereit zum Teilen.", .pt: "Exportações limpas, prontas a partilhar."],
+
         // App
         "app_name": [.en: "DualCam OxO", .fr: "DualCam OxO", .es: "DualCam OxO", .de: "DualCam OxO", .pt: "DualCam OxO"],
         "app_tagline": [.en: "Two lenses. One take.", .fr: "Deux objectifs. Une prise.", .es: "Dos lentes. Una toma.", .de: "Zwei Linsen. Eine Aufnahme.", .pt: "Duas lentes. Uma captura."],

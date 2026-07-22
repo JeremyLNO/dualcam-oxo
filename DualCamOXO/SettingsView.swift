@@ -1,19 +1,16 @@
 import SwiftUI
+import CrazyBeeLicense
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var settings: AppSettings
     @ObservedObject private var notifs = NotificationService.shared
     @ObservedObject private var account = AccountManager.shared
-    @ObservedObject private var purchases = PurchaseManager.shared
     @AppStorage(AppLanguage.storageKey) private var languageRaw = AppLanguage.systemDefault.rawValue
 
     @State private var updateStatus: String?
     @State private var checking = false
     @State private var showAccount = false
-    @State private var showPaywall = false
-    @State private var restoreStatus: String?
-    @State private var restoring = false
 
     private var lang: AppLanguage { AppLanguage(rawValue: languageRaw) ?? .en }
 
@@ -22,42 +19,18 @@ struct SettingsView: View {
             Form {
                 // Capture
                 Section(L.t("capture_section", lang)) {
-                    Picker(L.t("set_default_quality", lang), selection: qualityBinding) {
+                    Picker(L.t("set_default_quality", lang), selection: $settings.quality) {
                         ForEach(VideoQuality.allCases) { q in
-                            if q == .uhd4k && !purchases.isPro {
-                                Label(L.t(q.titleKey, lang), systemImage: "lock.fill").tag(q)
-                            } else {
-                                Text(L.t(q.titleKey, lang)).tag(q)
-                            }
+                            Text(L.t(q.titleKey, lang)).tag(q)
                         }
                     }
                     Toggle(L.t("set_grid", lang), isOn: $settings.showGrid)
                     Toggle(L.t("flash", lang), isOn: $settings.flashDefault)
                 }
 
-                // Pro
-                Section(L.t("dualcam_pro", lang)) {
-                    if purchases.isPro {
-                        Label(L.t("pro_row_active", lang), systemImage: "checkmark.seal.fill")
-                            .foregroundStyle(Palette.honey)
-                    } else {
-                        Button { showPaywall = true } label: {
-                            Label(L.t("pro_row_title", lang), systemImage: "sparkles")
-                        }
-                        .foregroundStyle(Palette.ink)
-                    }
-                    Button {
-                        restorePurchases()
-                    } label: {
-                        HStack {
-                            Text(L.t("restore_purchases", lang))
-                            Spacer()
-                            if restoring { ProgressView() }
-                            else if let restoreStatus { Text(restoreStatus).foregroundStyle(Palette.sub).font(.footnote) }
-                        }
-                    }
-                    .foregroundStyle(Palette.ink)
-                    .disabled(restoring)
+                // License
+                Section {
+                    LicenseSettingsView(manager: AppLicense.manager)
                 }
 
                 // Save to Photos
@@ -176,23 +149,8 @@ struct SettingsView: View {
             notifs.refreshAuthorization()
             // Dev screenshot hooks, mirroring -openSettings.
             if CommandLine.arguments.contains("-openAccount") { showAccount = true }
-            if CommandLine.arguments.contains("-openPaywall") { showPaywall = true }
         }
         .sheet(isPresented: $showAccount) { AccountView(lang: lang) }
-        .sheet(isPresented: $showPaywall) { PaywallView(lang: lang) }
-    }
-
-    /// Selecting 4K without Pro opens the paywall instead of applying the setting.
-    private var qualityBinding: Binding<VideoQuality> {
-        Binding(
-            get: { settings.quality },
-            set: { newValue in
-                if newValue == .uhd4k && !purchases.isPro {
-                    showPaywall = true
-                } else {
-                    settings.quality = newValue
-                }
-            })
     }
 
     private func runUpdateCheck() async {
@@ -202,18 +160,4 @@ struct SettingsView: View {
         updateStatus = newer.map { "\(L.t("update_available", lang)) · \($0)" } ?? L.t("up_to_date", lang)
     }
 
-    private func restorePurchases() {
-        restoring = true
-        restoreStatus = nil
-        Task {
-            do {
-                let wasPro = purchases.isPro
-                try await purchases.restore()
-                restoreStatus = (purchases.isPro || wasPro) ? L.t("restore_done", lang) : L.t("restore_none", lang)
-            } catch {
-                restoreStatus = error.localizedDescription
-            }
-            restoring = false
-        }
-    }
 }
