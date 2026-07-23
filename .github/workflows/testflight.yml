@@ -27,6 +27,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout shared CrazyBeeLicense package
+        # QualiScan/DualCam OxO/Menu Island/Record Seconds reference the
+        # license-gate package via a local SPM package reference at
+        # "../crazybee-license-kit" (a sibling directory locally) — clone it
+        # to that exact relative path here so package resolution finds it.
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git clone --depth 1 "https://x-access-token:${GH_PAT}@github.com/JeremyLNO/KitSwift.git" "$GITHUB_WORKSPACE/../crazybee-license-kit"
+
       - name: Select latest available Xcode
         # App Store Connect now rejects uploads built with an SDK older than
         # the current-year iOS SDK — the runner image's *default* Xcode lags
