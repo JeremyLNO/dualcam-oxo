@@ -327,6 +327,7 @@
 				DEVELOPMENT_TEAM = 2E6D4Q69QB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_CFBundleDisplayName = "DualCam OxO";
 				INFOPLIST_KEY_NSCameraUsageDescription = "DualCam OxO uses the cameras to record with two lenses at once.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "DualCam OxO records audio with your videos.";
@@ -360,6 +361,7 @@
 				DEVELOPMENT_TEAM = 2E6D4Q69QB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_CFBundleDisplayName = "DualCam OxO";
 				INFOPLIST_KEY_NSCameraUsageDescription = "DualCam OxO uses the cameras to record with two lenses at once.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "DualCam OxO records audio with your videos.";
