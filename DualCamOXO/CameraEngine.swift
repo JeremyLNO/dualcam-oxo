@@ -101,7 +101,6 @@ final class CameraEngine: NSObject, ObservableObject {
 
     private func configure(mode: CaptureMode, side: CameraSide, quality: VideoQuality, kind: CaptureKind) {
         session.beginConfiguration()
-        defer { session.commitConfiguration() }
 
         // Reset any prior graph.
         session.inputs.forEach { session.removeInput($0) }
@@ -121,6 +120,7 @@ final class CameraEngine: NSObject, ObservableObject {
                        camera(.builtInUltraWideCamera, pos) ?? camera(.builtInTelephotoCamera, pos))
         }
         guard let devA = devices.0, let devB = devices.1 else {
+            session.commitConfiguration()
             Task { @MainActor in self.status = .unsupported }; return
         }
         deviceA = devA; deviceB = devB
@@ -130,6 +130,7 @@ final class CameraEngine: NSObject, ObservableObject {
         let rotB: CGFloat = (mode == .orientation) ? 0 : 90
         guard let pa = addCameraInput(devA, assign: { self.portA = $0 }),
               let pb = addCameraInput(devB, assign: { self.portB = $0 }) else {
+            session.commitConfiguration()
             Task { @MainActor in self.status = .unsupported }; return
         }
 
@@ -137,6 +138,7 @@ final class CameraEngine: NSObject, ObservableObject {
         case .video:
             guard addVideoOutput(port: pa, output: outputA, rotation: 90),
                   addVideoOutput(port: pb, output: outputB, rotation: rotB) else {
+                session.commitConfiguration()
                 Task { @MainActor in self.status = .unsupported }; return
             }
             addAudio()
@@ -147,6 +149,10 @@ final class CameraEngine: NSObject, ObservableObject {
             addPhotoOutput(port: pa, output: photoOutputA, rotation: 90)
             addPhotoOutput(port: pb, output: photoOutputB, rotation: rotB)
         }
+
+        // `startRunning()` must happen AFTER the configuration block is committed —
+        // calling it while still inside begin/commitConfiguration throws NSGenericException.
+        session.commitConfiguration()
 
         session.startRunning()
         Task { @MainActor in self.status = .running; self.currentKind = kind; self.applyTorch() }
