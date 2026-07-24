@@ -30,6 +30,7 @@
 		BA0000000000000000000016 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000016 /* Keychain.swift */; };
 		BA0000000000000000000017 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000017 /* NetworkMonitor.swift */; };
 		BA000000000000000000001A /* AppLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000001A /* AppLicense.swift */; };
+		BA0000000000000000000018 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000018 /* OnboardingView.swift */; };
 		BA000000000000000000001B /* CrazyBeeLicense in Frameworks */ = {isa = PBXBuildFile; productRef = 5F0000000000000000000001 /* CrazyBeeLicense */; };
 /* End PBXBuildFile section */
 
@@ -58,6 +59,7 @@
 		AC0000000000000000000016 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		AC0000000000000000000017 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		AC000000000000000000001A /* AppLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLicense.swift; sourceTree = "<group>"; };
+		AC0000000000000000000018 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000001 /* DualCamOXO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DualCamOXO.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -116,6 +118,7 @@
 				AC0000000000000000000016 /* Keychain.swift */,
 				AC0000000000000000000017 /* NetworkMonitor.swift */,
 				AC000000000000000000001A /* AppLicense.swift */,
+				AC0000000000000000000018 /* OnboardingView.swift */,
 			);
 			path = DualCamOXO;
 			sourceTree = "<group>";
@@ -217,6 +220,7 @@
 				BA0000000000000000000016 /* Keychain.swift in Sources */,
 				BA0000000000000000000017 /* NetworkMonitor.swift in Sources */,
 				BA000000000000000000001A /* AppLicense.swift in Sources */,
+				BA0000000000000000000018 /* OnboardingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

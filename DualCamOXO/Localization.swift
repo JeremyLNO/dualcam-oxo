@@ -66,6 +66,11 @@ enum L {
         "license_feature_nowatermark_title": [.en: "No watermark", .fr: "Sans filigrane", .es: "Sin marca de agua", .de: "Kein Wasserzeichen", .pt: "Sem marca de água"],
         "license_feature_nowatermark_detail": [.en: "Clean exports, ready to share.", .fr: "Exports propres, prêts à partager.", .es: "Exportaciones limpias, listas para compartir.", .de: "Saubere Exporte, bereit zum Teilen.", .pt: "Exportações limpas, prontas a partilhar."],
 
+        // Onboarding (first launch)
+        "onboarding_trial_title": [.en: "Your 7-day free trial has started", .fr: "Votre essai gratuit de 7 jours a commencé", .es: "Tu prueba gratuita de 7 días ha comenzado", .de: "Deine 7-tägige kostenlose Testversion hat begonnen", .pt: "O seu período de teste gratuito de 7 dias começou"],
+        "onboarding_trial_body": [.en: "Every feature is unlocked — no credit card, no payment info needed. Enjoy the full app for 7 days.", .fr: "Toutes les fonctionnalités sont débloquées — aucune carte bancaire, aucun paiement requis. Profitez de l'application complète pendant 7 jours.", .es: "Todas las funciones están desbloqueadas — sin tarjeta, sin datos de pago. Disfruta de la app completa durante 7 días.", .de: "Alle Funktionen sind freigeschaltet — keine Kreditkarte, keine Zahlungsdaten nötig. Genieße die volle App 7 Tage lang.", .pt: "Todas as funcionalidades estão desbloqueadas — sem cartão, sem dados de pagamento. Aproveite a app completa durante 7 dias."],
+        "onboarding_get_started": [.en: "Get started", .fr: "Commencer", .es: "Empezar", .de: "Los geht's", .pt: "Começar"],
+
         // App
         "app_name": [.en: "DualCam OxO", .fr: "DualCam OxO", .es: "DualCam OxO", .de: "DualCam OxO", .pt: "DualCam OxO"],
         "app_tagline": [.en: "Two lenses. One take.", .fr: "Deux objectifs. Une prise.", .es: "Dos lentes. Una toma.", .de: "Zwei Linsen. Eine Aufnahme.", .pt: "Duas lentes. Uma captura."],

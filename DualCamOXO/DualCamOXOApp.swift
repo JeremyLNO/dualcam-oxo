@@ -17,17 +17,37 @@ struct DualCamOXOApp: App {
            CaptureMode(rawValue: args[i + 1]) != nil {
             UserDefaults.standard.set(args[i + 1], forKey: "capture.mode")
         }
+        // -skipOnboarding marks first-launch onboarding as already done (screenshots/UI tests).
+        if args.contains("-skipOnboarding") {
+            UserDefaults.standard.set(true, forKey: RootView.onboardingKey)
+        }
         ReviewManager.shared.bootstrap()   // stamp the install date on first run
     }
 
     var body: some Scene {
         WindowGroup {
-            AppGate()
+            RootView()
                 .environmentObject(settings)
                 .task {
                     // Silent update check on launch (fires a local notice if newer exists).
                     await NotificationService.shared.checkForUpdate()
                 }
+        }
+    }
+}
+
+/// Shows the first-launch onboarding carousel once, then falls through to `AppGate`
+/// (unchanged) for every later launch.
+private struct RootView: View {
+    static let onboardingKey = "onboarding.completed"
+
+    @AppStorage(onboardingKey) private var onboardingCompleted = false
+
+    var body: some View {
+        if onboardingCompleted {
+            AppGate()
+        } else {
+            OnboardingView { onboardingCompleted = true }
         }
     }
 }

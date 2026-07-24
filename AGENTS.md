@@ -34,7 +34,13 @@
 
 ## Architecture
 - **DualCamOXOApp.swift** — `@main` + `AppDelegate`. Stampe la date d'installation (avis),
-  configure les notifications, lance un check de mise à jour au démarrage.
+  configure les notifications, lance un check de mise à jour au démarrage. `RootView` affiche
+  `OnboardingView` tant que `onboarding.completed` (UserDefaults) est faux, sinon `AppGate`
+  (logique de licence inchangée). `-skipOnboarding` marque l'onboarding comme déjà vu (captures/tests).
+- **OnboardingView.swift** — carrousel 1er lancement (`TabView(.page)`) : une page par
+  `AppLicense.features` (mêmes textes que le paywall) + une page finale « essai 7 jours démarré,
+  tout débloqué, sans CB » avec bouton *Get started*. Ne touche jamais à la caméra — la demande
+  d'autorisation caméra/micro reste déclenchée uniquement par `CameraView`, après l'onboarding.
 - **Palette.swift** — tokens noir + miel (charte Crazy Bee Labs).
 - **Localization.swift** — table in-code `L.t(key, lang)` EN/FR/ES/DE/PT. Défaut = langue système,
   repli anglais ; le choix utilisateur (persisté sous `app.language`) est **prioritaire**.
