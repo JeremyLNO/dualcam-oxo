@@ -161,10 +161,11 @@ struct CameraView: View {
         }
     }
 
-    /// 90° = portrait; feed B is landscape (0°) only in Portrait+Landscape mode.
-    private func rotation(isA: Bool) -> CGFloat {
-        isA ? 90 : (settings.mode == .orientation ? 0 : 90)
-    }
+    /// Both feeds are always rendered upright (90° relative to the sensor, which is
+    /// natively landscape). "Landscape framing" comes from the 16:9 container +
+    /// aspect-fill crop, NOT from rotating the image — rotating it would show the
+    /// world lying on its side.
+    private func rotation(isA: Bool) -> CGFloat { 90 }
     private func label(isA: Bool) -> String {
         switch settings.mode {
         case .frontBack:   return isA ? L.t("side_back", lang) : L.t("side_front", lang)

@@ -126,8 +126,9 @@ final class CameraEngine: NSObject, ObservableObject {
         deviceA = devA; deviceB = devB
         torchDevice = [devA, devB].first { $0.hasTorch }
 
-        // Feed B is framed landscape in Portrait+Landscape mode, portrait otherwise.
-        let rotB: CGFloat = (mode == .orientation) ? 0 : 90
+        // Both feeds are captured UPRIGHT (90° from the natively-landscape sensor).
+        // In Portrait+Landscape mode feed B is *framed* 16:9 by cropping at write
+        // time (see FeedWriter `landscape:`), never by rotating the image.
         guard let pa = addCameraInput(devA, assign: { self.portA = $0 }),
               let pb = addCameraInput(devB, assign: { self.portB = $0 }) else {
             session.commitConfiguration()
@@ -137,7 +138,7 @@ final class CameraEngine: NSObject, ObservableObject {
         switch kind {
         case .video:
             guard addVideoOutput(port: pa, output: outputA, rotation: 90),
-                  addVideoOutput(port: pb, output: outputB, rotation: rotB) else {
+                  addVideoOutput(port: pb, output: outputB, rotation: 90) else {
                 session.commitConfiguration()
                 Task { @MainActor in self.status = .unsupported }; return
             }
@@ -147,7 +148,7 @@ final class CameraEngine: NSObject, ObservableObject {
             audioOutput.setSampleBufferDelegate(self, queue: sessionQueue)
         case .photo:
             addPhotoOutput(port: pa, output: photoOutputA, rotation: 90)
-            addPhotoOutput(port: pb, output: photoOutputB, rotation: rotB)
+            addPhotoOutput(port: pb, output: photoOutputB, rotation: 90)
         }
 
         // `startRunning()` must happen AFTER the configuration block is committed —
@@ -262,9 +263,12 @@ final class CameraEngine: NSObject, ObservableObject {
         let stamp = Int(Date().timeIntervalSince1970)
         let urlA = dir.appendingPathComponent("dualcam_\(stamp)_A.mov")
         let urlB = dir.appendingPathComponent("dualcam_\(stamp)_B.mov")
+        // In Portrait+Landscape mode, feed B is the landscape-framed one (16:9 crop
+        // of the same upright image); in Front+Back both stay portrait.
+        let bIsLandscape = (mode == .orientation)
         sessionQueue.async {
             self.writerA = FeedWriter(url: urlA, quality: quality)
-            self.writerB = FeedWriter(url: urlB, quality: quality)
+            self.writerB = FeedWriter(url: urlB, quality: quality, landscape: bIsLandscape)
         }
         recordStart = Date()
         isRecording = true

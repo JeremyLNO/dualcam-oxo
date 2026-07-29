@@ -11,7 +11,10 @@ final class FeedWriter {
     private var started = false
     let url: URL
 
-    init(url: URL, quality: VideoQuality) {
+    /// `landscape` writes a 16:9 file instead of 9:16. Incoming frames are always
+    /// upright portrait buffers, so the writer crops them to the landscape frame
+    /// (aspect-fill) — the same centre-band framing the on-screen 16:9 PiP shows.
+    init(url: URL, quality: VideoQuality, landscape: Bool = false) {
         self.url = url
         try? FileManager.default.removeItem(at: url)
         writer = try? AVAssetWriter(outputURL: url, fileType: .mov)
@@ -19,8 +22,10 @@ final class FeedWriter {
         let dim = quality.dimensions
         let videoSettings: [String: Any] = [
             AVVideoCodecKey: AVVideoCodecType.h264,
-            AVVideoWidthKey: dim.height,        // portrait: swap W/H
-            AVVideoHeightKey: dim.width,
+            // Source buffers are portrait; `dim` is expressed landscape (e.g. 1920×1080).
+            AVVideoWidthKey: landscape ? dim.width : dim.height,
+            AVVideoHeightKey: landscape ? dim.height : dim.width,
+            AVVideoScalingModeKey: AVVideoScalingModeResizeAspectFill,
             AVVideoCompressionPropertiesKey: [
                 AVVideoAverageBitRateKey: quality.bitrate,
                 AVVideoExpectedSourceFrameRateKey: 30,
