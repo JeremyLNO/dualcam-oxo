@@ -69,7 +69,20 @@ jobs:
           security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN_PATH" -P "$CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" >/dev/null
           security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed 's/"//g')
+          # Without this, xcodebuild's automatic signing does not see the
+          # identity we just imported and quietly mints a BRAND NEW "Apple
+          # Development" certificate on every run, which exhausts the
+          # account-wide certificate quota after a handful of builds and then
+          # breaks archiving for every app on the account.
+          security default-keychain -s "$KEYCHAIN_PATH"
           rm -f "$RUNNER_TEMP/cert.p12"
+          # Fail loudly rather than let the build "succeed" on a freshly
+          # created certificate.
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -q "Apple Development" || {
+            echo "::error::imported certificate is not usable for code signing"
+            exit 1
+          }
 
       - name: Archive (signed, automatic provisioning)
         env:
