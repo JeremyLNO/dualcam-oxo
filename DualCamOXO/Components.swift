@@ -10,7 +10,7 @@ enum AppInfo {
     /// Account sign-up on the Crazy Bee Labs site.
     static let signUpURL = URL(string: "https://crazybeelabs.com/account/")!
     /// Privacy policy, required by App Review whenever an app collects any data.
-    static let privacyPolicyURL = URL(string: "https://www.crazybeelabs.com/privacy-policy/")!
+    static let privacyPolicyURL = URL(string: "https://www.crazybeelabs.com/legal/apps")!
 
     /// Base URL of the Crazy Bee Labs account API (crazybeelabs-app).
     static let apiBaseURL = URL(string: "https://www.crazybeelabs.com/api")!
