@@ -17,7 +17,7 @@ enum AppInfo {
 
     /// App Store numeric ID — fill in once the app is live on the App Store.
     /// Until then the review "Yes" button falls back to the CBL site.
-    static let appStoreID = "0000000000"
+    static let appStoreID = "6794003516"
 
     /// Deep link that opens the App Store review sheet.
     static var appStoreReviewURL: URL {
