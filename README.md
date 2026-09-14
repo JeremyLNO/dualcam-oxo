@@ -33,6 +33,5 @@ Film with **two iPhone lenses at once**. A Crazy Bee Labs app.
 
 ## Before shipping
 
-See `AGENTS.md` → *À compléter avant publication*: set `AppInfo.appStoreID`, set
-`NotificationService.oneSignalAppID` (the OneSignal SPM package is already linked), and switch
-`aps-environment` to `production`.
+See `AGENTS.md` → *À compléter avant publication*: set `AppInfo.appStoreID`. Push is done —
+the OneSignal package is linked, the App ID is set and `aps-environment` is `production`.

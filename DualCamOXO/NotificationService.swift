@@ -18,7 +18,7 @@ final class NotificationService: NSObject, ObservableObject {
     static let shared = NotificationService()
 
     /// Paste your OneSignal App ID here (dashboard → Settings → Keys & IDs).
-    static let oneSignalAppID = ""
+    static let oneSignalAppID = "76d96c14-b3eb-4eeb-a5e8-6ea93743f1f4"
 
     @Published var authorized = false
 

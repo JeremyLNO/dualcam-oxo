@@ -98,13 +98,14 @@
 ## À compléter avant publication (placeholders)
 1. **App Store ID** — `AppInfo.appStoreID` dans `Components.swift` (actuellement `0000000000`).
    Débloque le lien d'avis App Store et le check de mise à jour iTunes.
-2. **OneSignal** — le package SPM `OneSignal-XCFramework` (pinné en **5.5.1**, produit
-   `OneSignalFramework` seul) est **déjà lié à la target** et la capacité Push est activée sur
-   l'App ID `company.lno.dualcamoxo`. Il ne reste qu'à renseigner
-   `NotificationService.oneSignalAppID` : tant qu'il est vide, le SDK n'est jamais initialisé.
+2. **OneSignal — fait.** Package SPM `OneSignal-XCFramework` (pinné en **5.5.1**, produit
+   `OneSignalFramework` seul) lié à la target, capacité Push activée sur l'App ID
+   `company.lno.dualcamoxo`, et `NotificationService.oneSignalAppID` renseigné
+   (`76d96c14-b3eb-4eeb-a5e8-6ea93743f1f4`, app OneSignal « DualCam OxO », organisation
+   **Crazy Bee Labs**). La plateforme Apple iOS y est *Active* avec la clé APNs `.p8`
+   `226GZ743S5`. Vider la constante suffit à tout désactiver : le SDK n'est alors jamais initialisé.
    Les messages + deep links (dont « mise à jour disponible ») s'écrivent dans le dashboard OneSignal ;
    un push peut porter `additionalData["url"]` pour ouvrir une page.
-   Côté serveur, rien n'est livré tant qu'une clé APNs `.p8` n'est pas téléversée dans OneSignal.
 3. **aps-environment** — `DualCamOXO.entitlements` est en `development` ; passer en `production` pour la prod.
 4. **Sign In with Apple (portail Apple Developer)** — activer la capability « Sign In with Apple »
    sur l'App ID `company.lno.dualcamoxo` (developer.apple.com → Certificates, Identifiers & Profiles).
