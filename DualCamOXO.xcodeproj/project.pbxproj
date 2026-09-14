@@ -32,6 +32,7 @@
 		BA000000000000000000001A /* AppLicense.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000001A /* AppLicense.swift */; };
 		BA0000000000000000000018 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000018 /* OnboardingView.swift */; };
 		BA000000000000000000001B /* CrazyBeeLicense in Frameworks */ = {isa = PBXBuildFile; productRef = 5F0000000000000000000001 /* CrazyBeeLicense */; };
+		78ED4CF5A2D9AE200A4EC6FE /* OneSignalFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 0D615733FC6C9F59C6D396AD /* OneSignalFramework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				78ED4CF5A2D9AE200A4EC6FE /* OneSignalFramework in Frameworks */,
 				BA000000000000000000001B /* CrazyBeeLicense in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -140,6 +142,7 @@
 			);
 			name = DualCamOXO;
 			packageProductDependencies = (
+				0D615733FC6C9F59C6D396AD /* OneSignalFramework */,
 				5F0000000000000000000001 /* CrazyBeeLicense */,
 			);
 			productName = DualCamOXO;
@@ -171,6 +174,7 @@
 			);
 			mainGroup = AA0000000000000000000002;
 			packageReferences = (
+				F614C3534F6FD3F653BEC3FC /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */,
 				410000000000000000000001 /* XCLocalSwiftPackageReference "../crazybee-license-kit" */,
 			);
 			productRefGroup = AA0000000000000000000003 /* Products */;
@@ -239,7 +243,23 @@
 			package = 410000000000000000000001 /* XCLocalSwiftPackageReference "../crazybee-license-kit" */;
 			productName = CrazyBeeLicense;
 		};
+		0D615733FC6C9F59C6D396AD /* OneSignalFramework */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F614C3534F6FD3F653BEC3FC /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */;
+			productName = OneSignalFramework;
+		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F614C3534F6FD3F653BEC3FC /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/OneSignal/OneSignal-XCFramework";
+			requirement = {
+				kind = exactVersion;
+				version = 5.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCBuildConfiguration section */
 		EE0000000000000000000001 /* Debug */ = {

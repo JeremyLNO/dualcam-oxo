@@ -1,9 +1,9 @@
 import Foundation
 import UIKit
 
-// This whole file is inert until the OneSignal Swift Package is added to the target.
-// Add `OneSignalXCFramework` (https://github.com/OneSignal/OneSignal-iOS-SDK) via
-// Swift Package Manager, then set `NotificationService.oneSignalAppID`.
+// The OneSignal Swift Package (`OneSignal-XCFramework`, pinned to 5.5.1) is linked
+// into the app target, so this file compiles for real; it stays inert at runtime
+// until `NotificationService.oneSignalAppID` holds an actual App ID.
 #if canImport(OneSignalFramework)
 import OneSignalFramework
 

@@ -4,12 +4,12 @@ import UIKit
 
 /// Push + local notifications.
 ///
-/// Remote push is delivered through **OneSignal** (https://onesignal.com). The SDK
-/// is optional at build time so the app compiles and runs without it: once you add
-/// the `OneSignalXCFramework` Swift Package and set `oneSignalAppID`, the guarded
-/// block below wires it up. Messages and their deep links are authored in the
-/// OneSignal dashboard (or via its REST API) — including the "update available"
-/// campaign.
+/// Remote push is delivered through **OneSignal** (https://onesignal.com). The
+/// `OneSignal-XCFramework` Swift Package is linked into the app target, so the only
+/// thing left to switch push on is `oneSignalAppID` below — empty means the SDK is
+/// never initialised and nothing here touches the network. Messages and their deep
+/// links are authored in the OneSignal dashboard (or via its REST API) — including
+/// the "update available" campaign.
 ///
 /// A local fallback (`checkForUpdate`) also fires an on-device notification when the
 /// App Store lists a newer version, so update alerts work even before push is set up.

@@ -43,8 +43,12 @@ final class CameraEngine: NSObject, ObservableObject {
     private var deviceA: AVCaptureDevice?
     private var deviceB: AVCaptureDevice?
 
-    private var writerA: FeedWriter?
-    private var writerB: FeedWriter?
+    // Written and read on `sessionQueue` (the sample-buffer delegate queue) and read
+    // back on the main actor when recording stops. `nonisolated(unsafe)` states that
+    // hand-off explicitly instead of letting the compiler assume main-actor isolation
+    // it cannot enforce here.
+    private nonisolated(unsafe) var writerA: FeedWriter?
+    private nonisolated(unsafe) var writerB: FeedWriter?
     private var recordStart: Date?
     private var timer: Timer?
     private var photoCoordinator: DualPhotoCapture?
@@ -214,9 +218,10 @@ final class CameraEngine: NSObject, ObservableObject {
 
     private func applyTorch() {
         guard let dev = torchDevice, dev.hasTorch else { return }
+        let on = torchOn   // read on the main actor, applied on the session queue
         sessionQueue.async {
             try? dev.lockForConfiguration()
-            dev.torchMode = self.torchOn ? .on : .off
+            dev.torchMode = on ? .on : .off
             dev.unlockForConfiguration()
         }
     }
