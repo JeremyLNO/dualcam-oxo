@@ -115,6 +115,13 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
+          # Numéro de build : minutes écoulées depuis le 2023-11-14. Strictement
+          # croissant (~525 000/an) et identique à celui qu'utilise un upload manuel
+          # depuis le Mac, donc les deux chemins ne se croiseront jamais.
+          # `github.run_number` ne tenait pas cette promesse : il repart de son propre
+          # compteur et se fait dépasser par le premier upload manuel, après quoi la CI
+          # ne peut plus rien publier.
+          BUILD_NUMBER=$(( ($(date +%s) - 1700000000) / 60 ))
           xcodebuild archive \
             -project DualCamOXO.xcodeproj \
             -scheme DualCamOXO \
@@ -123,7 +130,7 @@ jobs:
             -archivePath build/DualCamOXO.xcarchive \
             -destination 'generic/platform=iOS' \
             -allowProvisioningUpdates \
-            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            CURRENT_PROJECT_VERSION=$BUILD_NUMBER \
             -authenticationKeyPath "$HOME/private_keys/AuthKey_${ASC_KEY_ID}.p8" \
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID"
