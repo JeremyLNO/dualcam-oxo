@@ -1,5 +1,4 @@
 import SwiftUI
-import CrazyBeeLicense
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
@@ -11,6 +10,9 @@ struct SettingsView: View {
     @State private var updateStatus: String?
     @State private var checking = false
     @State private var showAccount = false
+
+    @ObservedObject private var store = ProStore.shared
+    @State private var showPaywall = false
 
     private var lang: AppLanguage { AppLanguage(rawValue: languageRaw) ?? .en }
 
@@ -28,9 +30,30 @@ struct SettingsView: View {
                     Toggle(L.t("flash", lang), isOn: $settings.flashDefault)
                 }
 
-                // License
+                // In-App Purchase only on iOS (App Review 3.1.1) — no licence-key entry
+                // here, unlike the macOS apps that share the same CrazyBeeLicense package.
                 Section {
-                    LicenseSettingsView(manager: AppLicense.manager)
+                    if store.isPro {
+                        Label(L.t("pro_active", lang), systemImage: "checkmark.seal.fill")
+                            .foregroundStyle(Palette.success)
+                    } else {
+                        Button { showPaywall = true } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "crown.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(LinearGradient.honey)
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text("DualCam OxO Pro").font(.headline).foregroundStyle(Palette.ink)
+                                    Text(L.t("pay_get_pro", lang)).font(.caption).foregroundStyle(Palette.sub)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right").font(.footnote).foregroundStyle(Palette.faint)
+                            }
+                        }
+                    }
+                    Button { Task { await store.restore() } } label: {
+                        Label(L.t("restore_purchases", lang), systemImage: "arrow.clockwise")
+                    }
                 }
 
                 // Save to Photos
@@ -150,6 +173,7 @@ struct SettingsView: View {
             // Dev screenshot hooks, mirroring -openSettings.
             if CommandLine.arguments.contains("-openAccount") { showAccount = true }
         }
+        .sheet(isPresented: $showPaywall) { PaywallView() }
         .sheet(isPresented: $showAccount) { AccountView(lang: lang) }
     }
 

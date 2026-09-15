@@ -52,21 +52,23 @@ private struct RootView: View {
     }
 }
 
-/// Gates the whole app behind the license state — trial running or a valid license
-/// shows `CameraView`, otherwise the shared `LicenseLockedView` paywall.
+/// Gates the whole app: the free trial (or the owner licence) comes from the shared
+/// `CrazyBeeLicense` package, but the *purchase* is a StoreKit In-App Purchase —
+/// App Review 3.1.1 doesn't allow unlocking iOS features with a web licence, so the
+/// macOS licence-key screen is not used here.
 private struct AppGate: View {
     @ObservedObject private var license = AppLicense.manager
+    @ObservedObject private var store = ProStore.shared
+
+    /// -showPaywall forces the locked screen (screenshots / reviewing the paywall).
+    private var forcePaywall: Bool { CommandLine.arguments.contains("-showPaywall") }
 
     var body: some View {
         Group {
-            if license.isFunctional {
+            if !forcePaywall, license.isFunctional || store.isPro {
                 CameraView()
             } else {
-                LicenseLockedView(
-                    manager: license,
-                    features: AppLicense.features,
-                    logo: Image("CrazyBeeLabsLogo")
-                )
+                PaywallView(isGate: true)
             }
         }
         .task { await license.refresh() }

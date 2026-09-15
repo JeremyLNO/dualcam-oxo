@@ -33,6 +33,8 @@
 		BA0000000000000000000018 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000018 /* OnboardingView.swift */; };
 		BA000000000000000000001B /* CrazyBeeLicense in Frameworks */ = {isa = PBXBuildFile; productRef = 5F0000000000000000000001 /* CrazyBeeLicense */; };
 		78ED4CF5A2D9AE200A4EC6FE /* OneSignalFramework in Frameworks */ = {isa = PBXBuildFile; productRef = 0D615733FC6C9F59C6D396AD /* OneSignalFramework */; };
+		BA000000000000000000001C /* ProStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000001C /* ProStore.swift */; };
+		BA000000000000000000001D /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC000000000000000000001D /* PaywallView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +64,8 @@
 		AC000000000000000000001A /* AppLicense.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLicense.swift; sourceTree = "<group>"; };
 		AC0000000000000000000018 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000001 /* DualCamOXO.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DualCamOXO.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC000000000000000000001C /* ProStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProStore.swift; sourceTree = "<group>"; };
+		AC000000000000000000001D /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,6 +116,8 @@
 				AC000000000000000000000E /* ReviewManager.swift */,
 				AC000000000000000000000F /* NotificationService.swift */,
 				AC0000000000000000000010 /* OneSignalBridge.swift */,
+				AC000000000000000000001C /* ProStore.swift */,
+				AC000000000000000000001D /* PaywallView.swift */,
 				AC0000000000000000000011 /* Assets.xcassets */,
 				AC0000000000000000000012 /* DualCamOXO.entitlements */,
 				AC0000000000000000000013 /* APIClient.swift */,
@@ -217,6 +223,8 @@
 				BA000000000000000000000D /* ReviewPromptView.swift in Sources */,
 				BA000000000000000000000E /* ReviewManager.swift in Sources */,
 				BA000000000000000000000F /* NotificationService.swift in Sources */,
+				BA000000000000000000001C /* ProStore.swift in Sources */,
+				BA000000000000000000001D /* PaywallView.swift in Sources */,
 				BA0000000000000000000010 /* OneSignalBridge.swift in Sources */,
 				BA0000000000000000000013 /* APIClient.swift in Sources */,
 				BA0000000000000000000014 /* AccountManager.swift in Sources */,
