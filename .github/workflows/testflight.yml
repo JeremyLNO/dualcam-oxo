@@ -28,17 +28,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Authentifier SwiftPM auprès du dépôt privé du kit
-        # CrazyBeeLicense est désormais une dépendance SPM distante (dépôt privé
-        # JeremyLNO/KitSwift), plus un dossier cloné à côté du dépôt. Elle l'était :
-        # un package local et un package distant dans le même graphe figeaient la
-        # résolution sur les runners GitHub, indéfiniment et sans un mot.
-        # SwiftPM passe par git, donc il suffit de réécrire l'URL avec le jeton.
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          git config --global url."https://x-access-token:${GH_PAT}@github.com/".insteadOf "https://github.com/"
-
       - name: Select latest available Xcode
         # App Store Connect now rejects uploads built with an SDK older than
         # the current-year iOS SDK — the runner image's *default* Xcode lags
@@ -86,33 +75,20 @@ jobs:
             exit 1
           }
 
-      - name: Cache Swift packages
-        # OneSignal-XCFramework tire 7 binaryTarget (~117 Mo) depuis les releases
-        # GitHub à chaque run : sans cache, la résolution repart de zéro et flirte
-        # avec le chrono de l'étape. La clé suit Package.resolved, donc le cache
-        # ne survit pas à un changement de version de dépendance.
-        uses: actions/cache@v4
-        with:
-          path: SourcePackages
-          key: spm-${{ runner.os }}-${{ hashFiles('DualCamOXO.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
-          restore-keys: spm-${{ runner.os }}-
-
       - name: Resolve Swift packages
-        env:
-          # Un git qui réclame des identifiants dans un runner n'a personne pour
-          # répondre : il attend indéfiniment. Avec ça, il échoue et se nomme.
-          GIT_TERMINAL_PROMPT: '0'
-        # Résolu à part, avec son propre chrono. Une résolution qui se bloque
-        # *dans* `xcodebuild archive` n'a aucun timeout à elle : le 2026-09-14,
-        # trois dépôts sont restés figés juste après « Checking out 5.5.1 of
-        # package OneSignal-XCFramework » et GitHub ne les a tués qu'au bout de
-        # SIX heures. Ici, ça échoue en 10 minutes et ça se voit.
-        timeout-minutes: 30
+        # Les deux dépendances sont vendorées sous Vendor/ et référencées en paquets
+        # LOCAUX : la résolution ne touche pas au réseau et prend deux secondes. Elle
+        # se figeait auparavant dans -[Xcode3CommandLineBuildTool
+        # waitForRemoteSourcePackagesToFinishLoading], une attente KVO qui ne bascule
+        # jamais dès qu'un paquet DISTANT est dans le graphe. Le minuteur reste comme
+        # filet : la même résolution bloquée *dans* `xcodebuild archive` n'en a aucun.
+        timeout-minutes: 5
         run: |
           xcodebuild -resolvePackageDependencies \
             -project DualCamOXO.xcodeproj \
             -scheme DualCamOXO \
-            -clonedSourcePackagesDirPath SourcePackages
+            -clonedSourcePackagesDirPath "$PWD/build/SourcePackages" \
+            -packageCachePath "$PWD/build/PackageCache"
 
       - name: Archive (signed, automatic provisioning)
         env:
@@ -130,7 +106,8 @@ jobs:
             -project DualCamOXO.xcodeproj \
             -scheme DualCamOXO \
             -disableAutomaticPackageResolution \
-            -clonedSourcePackagesDirPath SourcePackages \
+            -clonedSourcePackagesDirPath "$PWD/build/SourcePackages" \
+            -packageCachePath "$PWD/build/PackageCache" \
             -configuration Release \
             -archivePath build/DualCamOXO.xcarchive \
             -destination 'generic/platform=iOS' \
