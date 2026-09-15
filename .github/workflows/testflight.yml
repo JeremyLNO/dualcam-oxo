@@ -28,24 +28,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Checkout shared CrazyBeeLicense package
-        # QualiScan/DualCam OxO/Menu Island/Record Seconds reference the
-        # license-gate package via a local SPM package reference at
-        # "../crazybee-license-kit" (a sibling directory locally) — clone it
-        # to that exact relative path here so package resolution finds it.
+      - name: Authentifier SwiftPM auprès du dépôt privé du kit
+        # CrazyBeeLicense est désormais une dépendance SPM distante (dépôt privé
+        # JeremyLNO/KitSwift), plus un dossier cloné à côté du dépôt. Elle l'était :
+        # un package local et un package distant dans le même graphe figeaient la
+        # résolution sur les runners GitHub, indéfiniment et sans un mot.
+        # SwiftPM passe par git, donc il suffit de réécrire l'URL avec le jeton.
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          KIT="$GITHUB_WORKSPACE/../crazybee-license-kit"
-          git clone --depth 1 "https://x-access-token:${GH_PAT}@github.com/JeremyLNO/KitSwift.git" "$KIT"
-          # Jeter le .git juste après : SwiftPM n'a besoin que des sources pour une
-          # XCLocalSwiftPackageReference, et tant que le dossier reste un dépôt git, la
-          # résolution peut y lancer un `git fetch`. Comme elle nettoie les identifiants
-          # embarqués dans l'URL du remote, ce fetch part **sans jeton** sur un dépôt
-          # privé : GitHub réclame alors un mot de passe et le job se fige sans un mot.
-          # C'est ce qui a bloqué qualiscan, dualcam-oxo et record-seconds six heures le
-          # 2026-09-14 — les trois seuls dépôts qui embarquent ce package local.
-          rm -rf "$KIT/.git"
+          git config --global url."https://x-access-token:${GH_PAT}@github.com/".insteadOf "https://github.com/"
 
       - name: Select latest available Xcode
         # App Store Connect now rejects uploads built with an SDK older than

@@ -175,7 +175,7 @@
 			mainGroup = AA0000000000000000000002;
 			packageReferences = (
 				F614C3534F6FD3F653BEC3FC /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */,
-				410000000000000000000001 /* XCLocalSwiftPackageReference "../crazybee-license-kit" */,
+				410000000000000000000001 /* XCRemoteSwiftPackageReference "KitSwift" */,
 			);
 			productRefGroup = AA0000000000000000000003 /* Products */;
 			projectDirPath = "";
@@ -230,17 +230,10 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		410000000000000000000001 /* XCLocalSwiftPackageReference "../crazybee-license-kit" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = "../crazybee-license-kit";
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
 		5F0000000000000000000001 /* CrazyBeeLicense */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 410000000000000000000001 /* XCLocalSwiftPackageReference "../crazybee-license-kit" */;
+			package = 410000000000000000000001 /* XCRemoteSwiftPackageReference "KitSwift" */;
 			productName = CrazyBeeLicense;
 		};
 		0D615733FC6C9F59C6D396AD /* OneSignalFramework */ = {
@@ -257,6 +250,14 @@
 			requirement = {
 				kind = exactVersion;
 				version = 5.5.1;
+			};
+		};
+		410000000000000000000001 /* XCRemoteSwiftPackageReference "KitSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/JeremyLNO/KitSwift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 1.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
