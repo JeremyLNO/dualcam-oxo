@@ -180,8 +180,8 @@
 			);
 			mainGroup = AA0000000000000000000002;
 			packageReferences = (
-				F614C3534F6FD3F653BEC3FC /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */,
-				410000000000000000000001 /* XCRemoteSwiftPackageReference "KitSwift" */,
+				F614C3534F6FD3F653BEC3FC /* XCLocalSwiftPackageReference "Vendor/OneSignalXCFramework" */,
+				410000000000000000000001 /* XCLocalSwiftPackageReference "Vendor/CrazyBeeLicense" */,
 			);
 			productRefGroup = AA0000000000000000000003 /* Products */;
 			projectDirPath = "";
@@ -241,34 +241,26 @@
 /* Begin XCSwiftPackageProductDependency section */
 		5F0000000000000000000001 /* CrazyBeeLicense */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 410000000000000000000001 /* XCRemoteSwiftPackageReference "KitSwift" */;
+			package = 410000000000000000000001 /* XCLocalSwiftPackageReference "Vendor/CrazyBeeLicense" */;
 			productName = CrazyBeeLicense;
 		};
 		0D615733FC6C9F59C6D396AD /* OneSignalFramework */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = F614C3534F6FD3F653BEC3FC /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */;
+			package = F614C3534F6FD3F653BEC3FC /* XCLocalSwiftPackageReference "Vendor/OneSignalXCFramework" */;
 			productName = OneSignalFramework;
 		};
 /* End XCSwiftPackageProductDependency section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		F614C3534F6FD3F653BEC3FC /* XCRemoteSwiftPackageReference "OneSignal-XCFramework" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/OneSignal/OneSignal-XCFramework";
-			requirement = {
-				kind = exactVersion;
-				version = 5.5.1;
-			};
+/* Begin XCLocalSwiftPackageReference section */
+		F614C3534F6FD3F653BEC3FC /* XCLocalSwiftPackageReference "Vendor/OneSignalXCFramework" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "Vendor/OneSignalXCFramework";
 		};
-		410000000000000000000001 /* XCRemoteSwiftPackageReference "KitSwift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/JeremyLNO/KitSwift.git";
-			requirement = {
-				kind = exactVersion;
-				version = 1.0.0;
-			};
+		410000000000000000000001 /* XCLocalSwiftPackageReference "Vendor/CrazyBeeLicense" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "Vendor/CrazyBeeLicense";
 		};
-/* End XCRemoteSwiftPackageReference section */
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCBuildConfiguration section */
 		EE0000000000000000000001 /* Debug */ = {

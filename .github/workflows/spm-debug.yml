@@ -1,62 +1,68 @@
 name: SPM debug (jetable)
 
-# Diagnostic du blocage de « Resolve Swift packages ». Chaque sonde a son propre
-# chrono court : on cherche QUI pend, pas à produire un build.
+# Localise le blocage de « Resolve Swift packages ».
+# macOS n'a pas `timeout(1)` : chaque sonde utilise `limite N -- cmd` (shell pur).
 on:
   workflow_dispatch:
 
 jobs:
   probe:
     runs-on: macos-15
-    timeout-minutes: 12
+    timeout-minutes: 20
+    env:
+      GIT_TERMINAL_PROMPT: '0'
     steps:
       - uses: actions/checkout@v4
 
-      - name: Sonde 1 — dépôt privé SANS réécriture d'URL (doit échouer vite)
-        continue-on-error: true
-        env:
-          GIT_TERMINAL_PROMPT: '0'
+      - name: Préparer le chrono et les paquets d'essai
         run: |
-          set -x
-          time timeout 30 git ls-remote https://github.com/JeremyLNO/KitSwift.git 2>&1 | head -5
-          echo "code=$?"
+          cat > /tmp/limite <<'SH'
+          #!/bin/bash
+          # limite <secondes> -- <commande...>  → tue la commande si elle dépasse
+          secs="$1"; shift; [ "$1" = "--" ] && shift
+          "$@" & pid=$!
+          ( sleep "$secs"; kill -0 $pid 2>/dev/null && { echo "!!! FIGÉ APRÈS ${secs}s — pile :"; sample $pid 4 -file /tmp/s.txt >/dev/null 2>&1; grep -iE "wait|Remote|git|socket|resolve|network" /tmp/s.txt | head -25; kill -9 $pid 2>/dev/null; } ) &
+          watcher=$!
+          wait $pid; rc=$?
+          kill $watcher 2>/dev/null
+          echo "→ code=$rc"
+          SH
+          chmod +x /tmp/limite
+          mk() { # mk <dossier> <deps-swift>
+            mkdir -p "$1/Sources/P"; echo "" > "$1/Sources/P/P.swift"
+            cat > "$1/Package.swift" <<EOF
+          // swift-tools-version:5.9
+          import PackageDescription
+          let package = Package(name: "P", platforms: [.iOS(.v17)],
+            dependencies: [$2],
+            targets: [.target(name: "P")])
+          EOF
+          }
+          mk /tmp/only-kit '.package(url: "https://github.com/JeremyLNO/KitSwift.git", from: "1.0.0")'
+          mk /tmp/only-onesignal '.package(url: "https://github.com/OneSignal/OneSignal-XCFramework", exact: "5.5.1")'
+          mk /tmp/both '.package(url: "https://github.com/JeremyLNO/KitSwift.git", from: "1.0.0"), .package(url: "https://github.com/OneSignal/OneSignal-XCFramework", exact: "5.5.1")'
 
-      - name: Sonde 2 — le PAT est-il valide ?
-        continue-on-error: true
+      - name: Réécriture d'URL (comme le vrai workflow)
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          if [ -z "$GH_PAT" ]; then echo "::error::GH_PAT est VIDE"; exit 0; fi
-          echo "longueur du PAT: ${#GH_PAT}"
-          code=$(curl -s -o /tmp/u.json -w '%{http_code}' -H "Authorization: Bearer $GH_PAT" https://api.github.com/user)
-          echo "api.github.com/user -> $code"; head -c 200 /tmp/u.json; echo
-          code=$(curl -s -o /tmp/r.json -w '%{http_code}' -H "Authorization: Bearer $GH_PAT" https://api.github.com/repos/JeremyLNO/KitSwift)
-          echo "repos/JeremyLNO/KitSwift -> $code"; head -c 200 /tmp/r.json; echo
+        run: git config --global url."https://x-access-token:${GH_PAT}@github.com/".insteadOf "https://github.com/"
 
-      - name: Sonde 3 — clone du dépôt privé AVEC réécriture d'URL
+      - name: A — KitSwift SEUL (SwiftPM)
         continue-on-error: true
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-          GIT_TERMINAL_PROMPT: '0'
-        run: |
-          git config --global url."https://x-access-token:${GH_PAT}@github.com/".insteadOf "https://github.com/"
-          set -x
-          time timeout 60 git ls-remote https://github.com/JeremyLNO/KitSwift.git 2>&1 | head -5
-          echo "code=$?"
+        run: cd /tmp/only-kit && time /tmp/limite 90 -- swift package resolve 2>&1 | tail -20
 
-      - name: Sonde 4 — résolution SPM verbeuse, chronométrée, avec pile si figée
+      - name: B — OneSignal SEUL (SwiftPM)
         continue-on-error: true
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-          GIT_TERMINAL_PROMPT: '0'
+        run: cd /tmp/only-onesignal && time /tmp/limite 180 -- swift package resolve 2>&1 | tail -20
+
+      - name: C — les DEUX (SwiftPM)
+        continue-on-error: true
+        run: cd /tmp/both && time /tmp/limite 180 -- swift package resolve 2>&1 | tail -20
+
+      - name: D — le vrai projet via xcodebuild
+        continue-on-error: true
         run: |
           latest=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1); sudo xcode-select -s "$latest"
-          ( sleep 150; echo "=== PILE APRÈS 150 s ==="; \
-            pid=$(pgrep -f "xcodebuild -resolvePackageDependencies" | head -1); \
-            [ -n "$pid" ] && sample "$pid" 5 -file /tmp/sample.txt >/dev/null 2>&1 && \
-              grep -iE "wait|socket|git|network|resolve" /tmp/sample.txt | head -30; \
-            echo "=== connexions ouvertes ==="; lsof -i -n -P 2>/dev/null | grep -iE "xcodebuild|git" | head -20 ) &
-          timeout 240 xcodebuild -resolvePackageDependencies \
+          time /tmp/limite 300 -- xcodebuild -resolvePackageDependencies \
             -project DualCamOXO.xcodeproj -scheme DualCamOXO \
-            -clonedSourcePackagesDirPath /tmp/SP 2>&1 | tail -40
-          echo "code de sortie xcodebuild: $?"
+            -clonedSourcePackagesDirPath /tmp/SP 2>&1 | tail -30
