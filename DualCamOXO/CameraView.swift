@@ -382,11 +382,23 @@ struct CameraView: View {
         saving = true
         Task {
             do {
-                try? await Task.sleep(nanoseconds: 400_000_000)
+                // Both `AVAssetWriter`s must have finished writing their moov atom,
+                // otherwise the files still have no readable tracks.
+                await engine.writersFinished?.value
+                #if DEBUG
+                CombineDiag.reset()
+                CombineDiag.log("prise \(take.mode.rawValue) qualité=\(effectiveQuality.rawValue) "
+                                + "mode=\(settings.saveMode.rawValue) layout=\(settings.combinedLayout.rawValue)")
+                CombineDiag.keep(take.urlA, as: "diag_A.mov")
+                CombineDiag.keep(take.urlB, as: "diag_B.mov")
+                #endif
                 try await VideoComposer.save(take: take.urlA, and: take.urlB, as: settings.saveMode,
                                              layout: settings.combinedLayout, watermarked: false)
                 flash(L.t("saved", lang))
             } catch {
+                #if DEBUG
+                CombineDiag.log("ÉCHEC save : \(error)")
+                #endif
                 flash(L.t("save_failed", lang), icon: "exclamationmark.triangle.fill")
             }
             saving = false

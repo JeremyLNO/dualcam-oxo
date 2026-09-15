@@ -26,3 +26,5 @@ Package.resolved
 !Vendor/**
 Vendor/*/.build/
 *.xcodeproj/-Xcc/
+build-device/
+build_dd/

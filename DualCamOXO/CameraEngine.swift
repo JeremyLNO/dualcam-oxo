@@ -62,6 +62,11 @@ final class CameraEngine: NSObject, ObservableObject {
     struct Take { let urlA: URL; let urlB: URL; let mode: CaptureMode }
     private(set) var lastTake: Take?
 
+    /// Completes once both writers have flushed their `moov` atom. The save
+    /// pipeline must await this: reading a file whose `finishWriting` is still
+    /// running yields an asset with no tracks (or a truncated one).
+    private(set) var writersFinished: Task<Void, Never>?
+
     // MARK: - Lifecycle
 
     func start(mode: CaptureMode, side: CameraSide, quality: VideoQuality, flash: Bool, kind: CaptureKind) {
@@ -293,11 +298,16 @@ final class CameraEngine: NSObject, ObservableObject {
         timer?.invalidate(); timer = nil
         let (a, b) = (writerA, writerB)
         writerA = nil; writerB = nil
-        sessionQueue.async {
-            let g = DispatchGroup()
-            g.enter(); a?.finish { g.leave() }
-            g.enter(); b?.finish { g.leave() }
-            g.wait()
+        let queue = sessionQueue
+        writersFinished = Task.detached {
+            await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+                queue.async {
+                    let g = DispatchGroup()
+                    g.enter(); a?.finish { g.leave() }
+                    g.enter(); b?.finish { g.leave() }
+                    g.notify(queue: .global()) { cont.resume() }
+                }
+            }
         }
     }
 

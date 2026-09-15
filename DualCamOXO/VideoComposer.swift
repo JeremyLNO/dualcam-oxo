@@ -31,6 +31,12 @@ enum VideoComposer {
         let mainAsset = AVURLAsset(url: main)
         let secAsset  = AVURLAsset(url: secondary)
 
+        #if DEBUG
+        CombineDiag.log("combine(\(layout.rawValue)) — sources")
+        await CombineDiag.describe(main, tag: "A/main")
+        await CombineDiag.describe(secondary, tag: "B/sec")
+        #endif
+
         guard let mainV = try await mainAsset.loadTracks(withMediaType: .video).first,
               let secV  = try await secAsset.loadTracks(withMediaType: .video).first
         else { throw ComposerError.noTracks }
@@ -71,6 +77,16 @@ enum VideoComposer {
             secRect = CGRect(x: canvas.width - insetW - margin, y: margin, width: insetW, height: insetH)
         }
 
+        #if DEBUG
+        CombineDiag.log("canvas=\(Int(canvas.width))x\(Int(canvas.height)) "
+            + "mainRect=\(mainRect) secRect=\(secRect) "
+            + "mainSize=\(mainSize) secSize=\(secSize) "
+            + "dur=\(String(format: "%.2f", dur.seconds)) "
+            + "cm=[\(String(format: "%.2f", cm.timeRange.start.seconds))→\(String(format: "%.2f", cm.timeRange.duration.seconds))] "
+            + "cs=[\(String(format: "%.2f", cs.timeRange.start.seconds))→\(String(format: "%.2f", cs.timeRange.duration.seconds))] "
+            + "compDur=\(String(format: "%.2f", comp.duration.seconds))")
+        #endif
+
         let liMain = AVMutableVideoCompositionLayerInstruction(assetTrack: cm)
         liMain.setTransform(try await transform(for: mainV, in: mainRect), at: .zero)
         let liSec = AVMutableVideoCompositionLayerInstruction(assetTrack: cs)
@@ -98,7 +114,20 @@ enum VideoComposer {
         export.outputURL = out
         export.outputFileType = .mov
         export.videoComposition = vComp
+        #if DEBUG
+        if CombineDiag.enabled {
+        CombineDiag.log("tMain=\(try await transform(for: mainV, in: mainRect)) "
+            + "tSec=\(try await transform(for: secV, in: secRect)) — export…")
+        }
+        #endif
         await export.export()
+        #if DEBUG
+        CombineDiag.log("export \(export.status.rawValue) err=\(String(describing: export.error))")
+        if export.status == .completed {
+            await CombineDiag.describe(out, tag: "COMBINÉ/\(layout.rawValue)")
+            CombineDiag.keep(out, as: "diag_combined_\(layout.rawValue).mov")
+        }
+        #endif
         guard export.status == .completed else { throw export.error ?? ComposerError.export }
         return out
     }
