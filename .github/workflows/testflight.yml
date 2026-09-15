@@ -36,7 +36,16 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          git clone --depth 1 "https://x-access-token:${GH_PAT}@github.com/JeremyLNO/KitSwift.git" "$GITHUB_WORKSPACE/../crazybee-license-kit"
+          KIT="$GITHUB_WORKSPACE/../crazybee-license-kit"
+          git clone --depth 1 "https://x-access-token:${GH_PAT}@github.com/JeremyLNO/KitSwift.git" "$KIT"
+          # Jeter le .git juste après : SwiftPM n'a besoin que des sources pour une
+          # XCLocalSwiftPackageReference, et tant que le dossier reste un dépôt git, la
+          # résolution peut y lancer un `git fetch`. Comme elle nettoie les identifiants
+          # embarqués dans l'URL du remote, ce fetch part **sans jeton** sur un dépôt
+          # privé : GitHub réclame alors un mot de passe et le job se fige sans un mot.
+          # C'est ce qui a bloqué qualiscan, dualcam-oxo et record-seconds six heures le
+          # 2026-09-14 — les trois seuls dépôts qui embarquent ce package local.
+          rm -rf "$KIT/.git"
 
       - name: Select latest available Xcode
         # App Store Connect now rejects uploads built with an SDK older than
@@ -86,6 +95,10 @@ jobs:
           }
 
       - name: Resolve Swift packages
+        env:
+          # Un git qui réclame des identifiants dans un runner n'a personne pour
+          # répondre : il attend indéfiniment. Avec ça, il échoue et se nomme.
+          GIT_TERMINAL_PROMPT: '0'
         # Résolu à part, avec son propre chrono. Une résolution qui se bloque
         # *dans* `xcodebuild archive` n'a aucun timeout à elle : le 2026-09-14,
         # trois dépôts sont restés figés juste après « Checking out 5.5.1 of
