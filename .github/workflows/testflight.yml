@@ -86,6 +86,17 @@ jobs:
             exit 1
           }
 
+      - name: Cache Swift packages
+        # OneSignal-XCFramework tire 7 binaryTarget (~117 Mo) depuis les releases
+        # GitHub à chaque run : sans cache, la résolution repart de zéro et flirte
+        # avec le chrono de l'étape. La clé suit Package.resolved, donc le cache
+        # ne survit pas à un changement de version de dépendance.
+        uses: actions/cache@v4
+        with:
+          path: SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles('DualCamOXO.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
+
       - name: Resolve Swift packages
         env:
           # Un git qui réclame des identifiants dans un runner n'a personne pour
@@ -96,11 +107,12 @@ jobs:
         # trois dépôts sont restés figés juste après « Checking out 5.5.1 of
         # package OneSignal-XCFramework » et GitHub ne les a tués qu'au bout de
         # SIX heures. Ici, ça échoue en 10 minutes et ça se voit.
-        timeout-minutes: 10
+        timeout-minutes: 30
         run: |
           xcodebuild -resolvePackageDependencies \
             -project DualCamOXO.xcodeproj \
-            -scheme DualCamOXO
+            -scheme DualCamOXO \
+            -clonedSourcePackagesDirPath SourcePackages
 
       - name: Archive (signed, automatic provisioning)
         env:
@@ -118,6 +130,7 @@ jobs:
             -project DualCamOXO.xcodeproj \
             -scheme DualCamOXO \
             -disableAutomaticPackageResolution \
+            -clonedSourcePackagesDirPath SourcePackages \
             -configuration Release \
             -archivePath build/DualCamOXO.xcarchive \
             -destination 'generic/platform=iOS' \
