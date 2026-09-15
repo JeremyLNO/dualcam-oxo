@@ -22,6 +22,7 @@ jobs:
   release:
     name: Archive & upload to TestFlight
     runs-on: macos-15
+    timeout-minutes: 45
     if: ${{ vars.SKIP_TESTFLIGHT != 'true' }}
     steps:
       - name: Checkout
@@ -84,6 +85,18 @@ jobs:
             exit 1
           }
 
+      - name: Resolve Swift packages
+        # Résolu à part, avec son propre chrono. Une résolution qui se bloque
+        # *dans* `xcodebuild archive` n'a aucun timeout à elle : le 2026-09-14,
+        # trois dépôts sont restés figés juste après « Checking out 5.5.1 of
+        # package OneSignal-XCFramework » et GitHub ne les a tués qu'au bout de
+        # SIX heures. Ici, ça échoue en 10 minutes et ça se voit.
+        timeout-minutes: 10
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project DualCamOXO.xcodeproj \
+            -scheme DualCamOXO
+
       - name: Archive (signed, automatic provisioning)
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
@@ -92,6 +105,7 @@ jobs:
           xcodebuild archive \
             -project DualCamOXO.xcodeproj \
             -scheme DualCamOXO \
+            -disableAutomaticPackageResolution \
             -configuration Release \
             -archivePath build/DualCamOXO.xcarchive \
             -destination 'generic/platform=iOS' \
