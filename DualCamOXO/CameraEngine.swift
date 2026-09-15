@@ -27,21 +27,24 @@ final class CameraEngine: NSObject, ObservableObject {
     let session = AVCaptureMultiCamSession()
 
     /// Input ports the preview layers connect to. `.a` is the primary feed.
-    private(set) var portA: AVCaptureInput.Port?
-    private(set) var portB: AVCaptureInput.Port?
+    // Posés sur `sessionQueue` pendant la configuration, lus depuis les vues d'aperçu.
+    // `nonisolated(unsafe)` décrit ce passage tel qu'il a toujours eu lieu ; l'annotation
+    // ne déplace aucun code, elle cesse juste de prétendre que tout est sur le main actor.
+    private(set) nonisolated(unsafe) var portA: AVCaptureInput.Port?
+    private(set) nonisolated(unsafe) var portB: AVCaptureInput.Port?
 
     private let sessionQueue = DispatchQueue(label: "com.crazybeelabs.dualcam.session")
-    private var deviceInputs: [AVCaptureDeviceInput] = []
+    private nonisolated(unsafe) var deviceInputs: [AVCaptureDeviceInput] = []
     private let outputA = AVCaptureVideoDataOutput()
     private let outputB = AVCaptureVideoDataOutput()
     private let audioOutput = AVCaptureAudioDataOutput()
     private let photoOutputA = AVCapturePhotoOutput()
     private let photoOutputB = AVCapturePhotoOutput()
-    private var torchDevice: AVCaptureDevice?
+    private nonisolated(unsafe) var torchDevice: AVCaptureDevice?
 
     // Physical devices behind each feed (for zoom / focus).
-    private var deviceA: AVCaptureDevice?
-    private var deviceB: AVCaptureDevice?
+    private nonisolated(unsafe) var deviceA: AVCaptureDevice?
+    private nonisolated(unsafe) var deviceB: AVCaptureDevice?
 
     // Written and read on `sessionQueue` (the sample-buffer delegate queue) and read
     // back on the main actor when recording stops. `nonisolated(unsafe)` states that
@@ -103,7 +106,7 @@ final class CameraEngine: NSObject, ObservableObject {
 
     // MARK: - Configuration
 
-    private func configure(mode: CaptureMode, side: CameraSide, quality: VideoQuality, kind: CaptureKind) {
+    private nonisolated func configure(mode: CaptureMode, side: CameraSide, quality: VideoQuality, kind: CaptureKind) {
         session.beginConfiguration()
 
         // Reset any prior graph.
@@ -163,12 +166,12 @@ final class CameraEngine: NSObject, ObservableObject {
         Task { @MainActor in self.status = .running; self.currentKind = kind; self.applyTorch() }
     }
 
-    private func camera(_ type: AVCaptureDevice.DeviceType, _ pos: AVCaptureDevice.Position) -> AVCaptureDevice? {
+    private nonisolated func camera(_ type: AVCaptureDevice.DeviceType, _ pos: AVCaptureDevice.Position) -> AVCaptureDevice? {
         AVCaptureDevice.default(type, for: .video, position: pos)
     }
 
     /// Adds one camera as a connectionless input and returns its video port.
-    private func addCameraInput(_ device: AVCaptureDevice,
+    private nonisolated func addCameraInput(_ device: AVCaptureDevice,
                                 assign: (AVCaptureInput.Port) -> Void) -> AVCaptureInput.Port? {
         guard let input = try? AVCaptureDeviceInput(device: device),
               session.canAddInput(input) else { return nil }
@@ -181,7 +184,7 @@ final class CameraEngine: NSObject, ObservableObject {
         return port
     }
 
-    private func addVideoOutput(port: AVCaptureInput.Port, output: AVCaptureVideoDataOutput, rotation: CGFloat) -> Bool {
+    private nonisolated func addVideoOutput(port: AVCaptureInput.Port, output: AVCaptureVideoDataOutput, rotation: CGFloat) -> Bool {
         output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
         guard session.canAddOutput(output) else { return false }
         session.addOutputWithNoConnections(output)
@@ -192,7 +195,7 @@ final class CameraEngine: NSObject, ObservableObject {
         return true
     }
 
-    private func addPhotoOutput(port: AVCaptureInput.Port, output: AVCapturePhotoOutput, rotation: CGFloat) {
+    private nonisolated func addPhotoOutput(port: AVCaptureInput.Port, output: AVCapturePhotoOutput, rotation: CGFloat) {
         guard session.canAddOutput(output) else { return }
         session.addOutputWithNoConnections(output)
         let conn = AVCaptureConnection(inputPorts: [port], output: output)
@@ -201,7 +204,7 @@ final class CameraEngine: NSObject, ObservableObject {
         if conn.isVideoRotationAngleSupported(rotation) { conn.videoRotationAngle = rotation }
     }
 
-    private func addAudio() {
+    private nonisolated func addAudio() {
         guard let mic = AVCaptureDevice.default(for: .audio),
               let micInput = try? AVCaptureDeviceInput(device: mic),
               session.canAddInput(micInput) else { return }
