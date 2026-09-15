@@ -1,0 +1,62 @@
+name: SPM debug (jetable)
+
+# Diagnostic du blocage de « Resolve Swift packages ». Chaque sonde a son propre
+# chrono court : on cherche QUI pend, pas à produire un build.
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: macos-15
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sonde 1 — dépôt privé SANS réécriture d'URL (doit échouer vite)
+        continue-on-error: true
+        env:
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          set -x
+          time timeout 30 git ls-remote https://github.com/JeremyLNO/KitSwift.git 2>&1 | head -5
+          echo "code=$?"
+
+      - name: Sonde 2 — le PAT est-il valide ?
+        continue-on-error: true
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          if [ -z "$GH_PAT" ]; then echo "::error::GH_PAT est VIDE"; exit 0; fi
+          echo "longueur du PAT: ${#GH_PAT}"
+          code=$(curl -s -o /tmp/u.json -w '%{http_code}' -H "Authorization: Bearer $GH_PAT" https://api.github.com/user)
+          echo "api.github.com/user -> $code"; head -c 200 /tmp/u.json; echo
+          code=$(curl -s -o /tmp/r.json -w '%{http_code}' -H "Authorization: Bearer $GH_PAT" https://api.github.com/repos/JeremyLNO/KitSwift)
+          echo "repos/JeremyLNO/KitSwift -> $code"; head -c 200 /tmp/r.json; echo
+
+      - name: Sonde 3 — clone du dépôt privé AVEC réécriture d'URL
+        continue-on-error: true
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          git config --global url."https://x-access-token:${GH_PAT}@github.com/".insteadOf "https://github.com/"
+          set -x
+          time timeout 60 git ls-remote https://github.com/JeremyLNO/KitSwift.git 2>&1 | head -5
+          echo "code=$?"
+
+      - name: Sonde 4 — résolution SPM verbeuse, chronométrée, avec pile si figée
+        continue-on-error: true
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          GIT_TERMINAL_PROMPT: '0'
+        run: |
+          latest=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1); sudo xcode-select -s "$latest"
+          ( sleep 150; echo "=== PILE APRÈS 150 s ==="; \
+            pid=$(pgrep -f "xcodebuild -resolvePackageDependencies" | head -1); \
+            [ -n "$pid" ] && sample "$pid" 5 -file /tmp/sample.txt >/dev/null 2>&1 && \
+              grep -iE "wait|socket|git|network|resolve" /tmp/sample.txt | head -30; \
+            echo "=== connexions ouvertes ==="; lsof -i -n -P 2>/dev/null | grep -iE "xcodebuild|git" | head -20 ) &
+          timeout 240 xcodebuild -resolvePackageDependencies \
+            -project DualCamOXO.xcodeproj -scheme DualCamOXO \
+            -clonedSourcePackagesDirPath /tmp/SP 2>&1 | tail -40
+          echo "code de sortie xcodebuild: $?"
