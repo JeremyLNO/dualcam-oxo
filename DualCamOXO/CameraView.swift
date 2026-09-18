@@ -62,6 +62,7 @@ struct CameraView: View {
         .onChange(of: settings.side) { _, _ in resetTransforms(); restart() }
         .onChange(of: settings.quality) { _, _ in restart() }
         .onChange(of: settings.captureKind) { _, _ in resetTransforms(); restart() }
+        .onChange(of: engine.warningKey) { _, key in showEngineWarning(key) }
         .sheet(isPresented: $showSettings) { SettingsView().environmentObject(settings) }
         .sheet(isPresented: $review.isPresented) { ReviewPromptView(lang: lang) }
     }
@@ -423,6 +424,14 @@ struct CameraView: View {
                 saving = false
             }
         }
+    }
+
+    /// Surfaces whatever the engine wants to warn about, then clears it so the
+    /// same warning can fire again on the next take.
+    private func showEngineWarning(_ key: String?) {
+        guard let key else { return }
+        flash(L.t(key, lang), icon: "exclamationmark.triangle.fill")
+        engine.warningKey = nil
     }
 
     private func flash(_ text: String, icon: String = "checkmark.circle.fill") {

@@ -9,7 +9,14 @@ final class FeedWriter {
     private let audioInput: AVAssetWriterInput
     private let q = DispatchQueue(label: "com.crazybeelabs.dualcam.writer")
     private var started = false
+    /// Appends the writer refused because its input was still busy, plus whether
+    /// it ended in `.failed`. Both are only ever touched on `q`.
+    private var droppedAppends = 0
+    private var failed = false
     let url: URL
+
+    /// What one feed has to say once it is closed.
+    struct Outcome { let droppedAppends: Int; let failed: Bool }
 
     /// `landscape` writes a 16:9 file instead of 9:16. Incoming frames are always
     /// upright portrait buffers, so the writer crops them to the landscape frame
@@ -60,23 +67,33 @@ final class FeedWriter {
                 w.startSession(atSourceTime: pts)
                 self.started = true
             }
-            guard w.status == .writing else { return }
-            if isVideo, self.videoInput.isReadyForMoreMediaData {
-                self.videoInput.append(sample)
-            } else if !isVideo, self.audioInput.isReadyForMoreMediaData {
-                self.audioInput.append(sample)
+            guard w.status == .writing else {
+                if w.status == .failed { self.failed = true }
+                return
             }
+            let input = isVideo ? self.videoInput : self.audioInput
+            guard input.isReadyForMoreMediaData else {
+                // Only video gaps are worth reporting: a missing audio packet is
+                // inaudible, a missing frame shortens the clip.
+                if isVideo { self.droppedAppends += 1 }
+                return
+            }
+            if !input.append(sample), isVideo { self.droppedAppends += 1 }
         }
     }
 
-    func finish(_ completion: @escaping () -> Void) {
+    func finish(_ completion: @escaping (Outcome) -> Void) {
         q.async { [weak self] in
-            guard let self, let w = self.writer, self.started, w.status == .writing else {
-                completion(); return
+            guard let self else { return completion(Outcome(droppedAppends: 0, failed: true)) }
+            guard let w = self.writer, self.started, w.status == .writing else {
+                completion(Outcome(droppedAppends: self.droppedAppends, failed: true)); return
             }
             self.videoInput.markAsFinished()
             self.audioInput.markAsFinished()
-            w.finishWriting { completion() }
+            w.finishWriting {
+                completion(Outcome(droppedAppends: self.droppedAppends,
+                                   failed: self.failed || w.status != .completed))
+            }
         }
     }
 }

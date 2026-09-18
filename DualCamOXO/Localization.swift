@@ -114,6 +114,9 @@ enum L {
         "layout_pip": [.en: "Picture-in-picture", .fr: "Incrusté (PiP)", .es: "Imagen en imagen", .de: "Bild-in-Bild", .pt: "Imagem na imagem"],
         "saving": [.en: "Saving…", .fr: "Enregistrement…", .es: "Guardando…", .de: "Sichern…", .pt: "A guardar…"],
         "saved": [.en: "Saved to Photos", .fr: "Enregistré dans Photos", .es: "Guardado en Fotos", .de: "In Fotos gesichert", .pt: "Guardado em Fotos"],
+        "warn_low_disk": [.en: "Not enough free space to record", .fr: "Espace libre insuffisant pour filmer", .es: "No hay espacio libre suficiente para grabar", .de: "Zu wenig freier Speicher zum Aufnehmen", .pt: "Espaço livre insuficiente para gravar"],
+        "warn_frames_dropped": [.en: "Some frames were lost — device under load", .fr: "Des images ont été perdues — appareil sous charge", .es: "Se perdieron fotogramas — dispositivo saturado", .de: "Einzelbilder gingen verloren — Gerät ausgelastet", .pt: "Perderam-se imagens — aparelho sob carga"],
+        "warn_write_failed": [.en: "Recording ended early", .fr: "L'enregistrement s'est interrompu", .es: "La grabación se interrumpió", .de: "Die Aufnahme wurde unterbrochen", .pt: "A gravação foi interrompida"],
         "save_failed": [.en: "Couldn't save video", .fr: "Échec de l'enregistrement", .es: "No se pudo guardar", .de: "Speichern fehlgeschlagen", .pt: "Falha ao guardar"],
 
         // Settings

@@ -52,6 +52,16 @@ final class CameraEngine: NSObject, ObservableObject {
     // it cannot enforce here.
     private nonisolated(unsafe) var writerA: FeedWriter?
     private nonisolated(unsafe) var writerB: FeedWriter?
+
+    /// Read by the capture callback on `sessionQueue`, where it is also written,
+    /// so a frame can never reach a writer that has already been torn down.
+    /// `isRecording` stays the main-actor copy the UI binds to.
+    private nonisolated(unsafe) var recording = false
+
+    /// Frames the pipeline threw away during the last take — thermal throttling,
+    /// a saturated encoder, or a disk that cannot keep up. Written on
+    /// `sessionQueue`, read once the writers have finished.
+    private nonisolated(unsafe) var dropped = 0
     private var recordStart: Date?
     private var timer: Timer?
     private var photoCoordinator: DualPhotoCapture?
@@ -61,6 +71,11 @@ final class CameraEngine: NSObject, ObservableObject {
     /// Result of a finished recording, consumed by the save pipeline.
     struct Take { let urlA: URL; let urlB: URL; let mode: CaptureMode }
     private(set) var lastTake: Take?
+
+    /// Localization key of something the user should know about the capture
+    /// (no room left, frames lost, a writer that failed). The view shows it and
+    /// clears it; `nil` means nothing to report.
+    @Published var warningKey: String?
 
     /// Completes once both writers have flushed their `moov` atom. The save
     /// pipeline must await this: reading a file whose `finishWriting` is still
@@ -163,12 +178,100 @@ final class CameraEngine: NSObject, ObservableObject {
             addPhotoOutput(port: pb, output: photoOutputB, rotation: 90)
         }
 
+        // Pick the capture format from the requested quality. Without this the two
+        // lenses stay on whatever format they booted with and `FeedWriter` merely
+        // rescales to the target size — the quality selector would not change a
+        // single captured pixel, and "4K" would be an upscale of 1080p.
+        applyFormats(devA, devB, quality: quality)
+
         // `startRunning()` must happen AFTER the configuration block is committed —
         // calling it while still inside begin/commitConfiguration throws NSGenericException.
         session.commitConfiguration()
 
         session.startRunning()
         Task { @MainActor in self.status = .running; self.currentKind = kind; self.applyTorch() }
+    }
+
+    // MARK: - Capture format
+
+    /// Puts both lenses on the best format the requested quality allows, then
+    /// steps them down until the pair fits in one hardware budget.
+    ///
+    /// `hardwareCost` above 1 means the two feeds cannot run together: the session
+    /// would fail to start rather than degrade on its own, so the walk down is ours
+    /// to do. It is read after the outputs are in place, which is when it is meaningful.
+    private nonisolated func applyFormats(_ devA: AVCaptureDevice, _ devB: AVCaptureDevice,
+                                          quality: VideoQuality) {
+        let formatsA = candidateFormats(devA, quality: quality)
+        let formatsB = candidateFormats(devB, quality: quality)
+        guard !formatsA.isEmpty, !formatsB.isEmpty else { return }
+
+        var iA = 0, iB = 0
+        apply(formatsA[iA], to: devA)
+        apply(formatsB[iB], to: devB)
+
+        var steps = 0
+        while session.hardwareCost > 1, steps < 16 {
+            steps += 1
+            // Shrink whichever feed is currently the more expensive one.
+            if pixels(formatsA[iA]) >= pixels(formatsB[iB]), iA + 1 < formatsA.count {
+                iA += 1; apply(formatsA[iA], to: devA)
+            } else if iB + 1 < formatsB.count {
+                iB += 1; apply(formatsB[iB], to: devB)
+            } else if iA + 1 < formatsA.count {
+                iA += 1; apply(formatsA[iA], to: devA)
+            } else {
+                break   // nothing smaller left on either lens
+            }
+        }
+        #if DEBUG
+        let dA = CMVideoFormatDescriptionGetDimensions(formatsA[iA].formatDescription)
+        let dB = CMVideoFormatDescriptionGetDimensions(formatsB[iB].formatDescription)
+        NSLog("DualCam format: A=%dx%d B=%dx%d coût=%.2f (demandé %@)",
+              dA.width, dA.height, dB.width, dB.height, session.hardwareCost, quality.rawValue)
+        #endif
+    }
+
+    /// Formats one lens can actually use here, best first.
+    ///
+    /// Multi-cam refuses formats the hardware cannot run two at a time, and the
+    /// H.264 writer cannot take the 10-bit `x420` buffers an HDR format delivers,
+    /// so both are filtered out rather than discovered at `startRunning()`.
+    private nonisolated func candidateFormats(_ device: AVCaptureDevice,
+                                              quality: VideoQuality) -> [AVCaptureDevice.Format] {
+        let target = quality.dimensions        // landscape, e.g. 1920×1080
+        let usable = device.formats.filter { f in
+            guard f.isMultiCamSupported else { return false }
+            let sub = CMFormatDescriptionGetMediaSubType(f.formatDescription)
+            guard sub == kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+                    || sub == kCVPixelFormatType_420YpCbCr8BiPlanarFullRange else { return false }
+            return f.videoSupportedFrameRateRanges.contains { $0.maxFrameRate >= 30 }
+        }
+        // Prefer formats at or under the requested size; fall back to the whole
+        // set when the lens has nothing that small (ultra-wide on some models).
+        let fits = usable.filter {
+            let d = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
+            return d.width <= Int32(target.width) && d.height <= Int32(target.height)
+        }
+        return (fits.isEmpty ? usable : fits).sorted { pixels($0) > pixels($1) }
+    }
+
+    private nonisolated func pixels(_ format: AVCaptureDevice.Format) -> Int {
+        let d = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
+        return Int(d.width) * Int(d.height)
+    }
+
+    private nonisolated func apply(_ format: AVCaptureDevice.Format, to device: AVCaptureDevice) {
+        guard (try? device.lockForConfiguration()) != nil else { return }
+        device.activeFormat = format
+        // Assigning `activeFormat` resets the frame duration to the format's own
+        // default, which can be 60 fps and doubles the hardware cost for nothing.
+        // Only the floor is pinned: leaving the ceiling alone keeps the camera's
+        // low-light frame-rate drop, which is what buys exposure in the dark.
+        if format.videoSupportedFrameRateRanges.contains(where: { $0.maxFrameRate >= 30 }) {
+            device.activeVideoMinFrameDuration = CMTime(value: 1, timescale: 30)
+        }
+        device.unlockForConfiguration()
     }
 
     private nonisolated func camera(_ type: AVCaptureDevice.DeviceType, _ pos: AVCaptureDevice.Position) -> AVCaptureDevice? {
@@ -190,12 +293,25 @@ final class CameraEngine: NSObject, ObservableObject {
     }
 
     private nonisolated func addVideoOutput(port: AVCaptureInput.Port, output: AVCaptureVideoDataOutput, rotation: CGFloat) -> Bool {
-        output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
         guard session.canAddOutput(output) else { return false }
         session.addOutputWithNoConnections(output)
         let conn = AVCaptureConnection(inputPorts: [port], output: output)
         guard session.canAddConnection(conn) else { return false }
         session.addConnection(conn)
+
+        // Bi-planar YCbCr is what the sensor delivers and what the H.264 encoder
+        // consumes; asking for BGRA inserts a full colour conversion on every
+        // frame of both feeds at once. `availableVideoPixelFormatTypes` is only
+        // populated once the output is connected, hence the order here.
+        let preferred = [kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+                         kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+                         kCVPixelFormatType_32BGRA]
+        if let fmt = preferred.first(where: { output.availableVideoPixelFormatTypes.contains($0) }) {
+            output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: fmt]
+        }
+        // Never queue a backlog: a late frame is reported through `didDrop` and
+        // counted, rather than delaying every frame behind it.
+        output.alwaysDiscardsLateVideoFrames = true
         if conn.isVideoRotationAngleSupported(rotation) { conn.videoRotationAngle = rotation }
         return true
     }
@@ -272,6 +388,7 @@ final class CameraEngine: NSObject, ObservableObject {
 
     private func beginRecording(quality: VideoQuality, mode: CaptureMode) {
         guard status == .running, currentKind == .video else { return }
+        guard hasRoomToRecord(quality) else { warningKey = "warn_low_disk"; return }
         let dir = FileManager.default.temporaryDirectory
         let stamp = Int(Date().timeIntervalSince1970)
         let urlA = dir.appendingPathComponent("dualcam_\(stamp)_A.mov")
@@ -282,6 +399,8 @@ final class CameraEngine: NSObject, ObservableObject {
         sessionQueue.async {
             self.writerA = FeedWriter(url: urlA, quality: quality)
             self.writerB = FeedWriter(url: urlB, quality: quality, landscape: bIsLandscape)
+            self.dropped = 0
+            self.recording = true
         }
         recordStart = Date()
         isRecording = true
@@ -296,19 +415,40 @@ final class CameraEngine: NSObject, ObservableObject {
     private func finishRecording() {
         isRecording = false
         timer?.invalidate(); timer = nil
-        let (a, b) = (writerA, writerB)
-        writerA = nil; writerB = nil
         let queue = sessionQueue
-        writersFinished = Task.detached {
-            await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
+        writersFinished = Task.detached { [self] in
+            let outcome = await withCheckedContinuation { (cont: CheckedContinuation<(Int, Bool), Never>) in
                 queue.async {
+                    // Closing the gate and releasing the writers on the capture
+                    // queue is what makes the hand-off safe: no frame is in flight.
+                    self.recording = false
+                    let (a, b) = (self.writerA, self.writerB)
+                    self.writerA = nil; self.writerB = nil
+
+                    var lost = self.dropped
+                    var failed = false
                     let g = DispatchGroup()
-                    g.enter(); a?.finish { g.leave() }
-                    g.enter(); b?.finish { g.leave() }
-                    g.notify(queue: .global()) { cont.resume() }
+                    g.enter(); a?.finish { r in lost += r.droppedAppends; failed = failed || r.failed; g.leave() }
+                    g.enter(); b?.finish { r in lost += r.droppedAppends; failed = failed || r.failed; g.leave() }
+                    g.notify(queue: .global()) { cont.resume(returning: (lost, failed)) }
                 }
             }
+            await MainActor.run {
+                if outcome.1 { self.warningKey = "warn_write_failed" }
+                else if outcome.0 > 5 { self.warningKey = "warn_frames_dropped" }
+            }
         }
+    }
+
+    /// Refuses to start a take the volume cannot hold: roughly a minute of both
+    /// feeds at the selected bitrate. Running out mid-recording leaves two
+    /// half-written files and loses the take entirely.
+    private func hasRoomToRecord(_ quality: VideoQuality) -> Bool {
+        let needed = Int64(quality.bitrate / 8) * 2 * 60
+        let free = (try? FileManager.default.temporaryDirectory
+            .resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]))?
+            .volumeAvailableCapacityForImportantUsage ?? 0
+        return free > needed
     }
 
     // MARK: - Photo capture
@@ -337,18 +477,31 @@ final class CameraEngine: NSObject, ObservableObject {
 
 extension CameraEngine: AVCaptureVideoDataOutputSampleBufferDelegate,
                           AVCaptureAudioDataOutputSampleBufferDelegate {
+    /// Called on `sessionQueue` for both video feeds and the microphone.
+    ///
+    /// Nothing here hops to the main actor. A `Task` per frame retained the
+    /// capture buffer well past the pool's budget *and* gave up delivery order —
+    /// tasks are not FIFO — so presentation timestamps could reach the writer out
+    /// of sequence, where the append is refused without a word.
     nonisolated func captureOutput(_ output: AVCaptureOutput,
                                    didOutput sampleBuffer: CMSampleBuffer,
                                    from connection: AVCaptureConnection) {
-        Task { @MainActor in
-            guard self.isRecording else { return }
-            if output === self.outputA { self.writerA?.append(sampleBuffer, isVideo: true) }
-            else if output === self.outputB { self.writerB?.append(sampleBuffer, isVideo: true) }
-            else {
-                self.writerA?.append(sampleBuffer, isVideo: false)
-                self.writerB?.append(sampleBuffer, isVideo: false)
-            }
+        guard recording else { return }
+        if output === outputA { writerA?.append(sampleBuffer, isVideo: true) }
+        else if output === outputB { writerB?.append(sampleBuffer, isVideo: true) }
+        else {
+            writerA?.append(sampleBuffer, isVideo: false)
+            writerB?.append(sampleBuffer, isVideo: false)
         }
+    }
+
+    /// The pipeline discarding a frame is the only warning a device gives that it
+    /// is too hot, too busy or too slow — counted here so the take can say so.
+    nonisolated func captureOutput(_ output: AVCaptureOutput,
+                                   didDrop sampleBuffer: CMSampleBuffer,
+                                   from connection: AVCaptureConnection) {
+        guard recording, output === outputA || output === outputB else { return }
+        dropped += 1
     }
 }
 
